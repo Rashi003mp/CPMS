@@ -4,6 +4,7 @@ using ConstructionPM.Application.Interfaces.Repositories.Commands;
 using ConstructionPM.Application.Interfaces.Repositories.Queries;
 using ConstructionPM.Application.Interfaces.Services;
 using ConstructionPM.Application.Services;
+using ConstructionPM.Application.Validators.Common;
 using ConstructionPM.Application.Validators.Implimentations;
 using ConstructionPM.Application.Validators.Interface;
 using ConstructionPM.Domain.Entities;
@@ -45,7 +46,12 @@ namespace ConstructionPM.API.Extensions
             services.AddScoped<IRegistrationQueryRepository, RegistrationQueryRepository>();
             services.AddScoped<IProjectCommandRepository, ProjectCommandRepository>();
             services.AddScoped<IProjectQueryRepository, ProjectQueryRepository>();
+
+            // validators
+            services.AddScoped<ICommonValidator, CommonValidator>();
             services.AddScoped<IRegistrationValidator, RegistrationValidator>();
+            services.AddScoped<IAdminUserSetupValidator, AdminUserSetupValidator>();
+
 
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 

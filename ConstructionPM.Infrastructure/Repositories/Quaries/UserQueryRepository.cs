@@ -1,9 +1,10 @@
 ﻿using ConstructionPM.Application.DTOs;
 using ConstructionPM.Application.Interfaces.Repositories.Queries;
+using ConstructionPM.Domain.Entities;
+using ConstructionPM.Domain.Enums;
 using ConstructionPM.Infrastructure.Dapper;
 using Dapper;
 using System.Data;
-using ConstructionPM.Domain.Entities;
 
 
 namespace ConstructionPM.Infrastructure.Repositories.Quaries
@@ -46,15 +47,19 @@ namespace ConstructionPM.Infrastructure.Repositories.Quaries
         public async Task<bool> AdminUserExistsAsync()
         {
             const string sql = """
-                SELECT COUNT(1)
-                FROM Users
-                INNER JOIN Roles ON Users.RoleId = Roles.Id
-                WHERE Roles.RoleName = 'Admin'
-                  AND Users.IsDeleted = 0
-                """;
+        SELECT COUNT(1)
+        FROM Users
+        WHERE RoleId = @AdminRole
+          AND IsDeleted = 0
+        """;
+
             using var connection = _context.CreateConnection();
 
-            var count = await connection.ExecuteScalarAsync<int>(sql);
+            var count = await connection.ExecuteScalarAsync<int>(
+                sql,
+                new { AdminRole = (int)RegistrationRole.Admin }
+            );
+
             return count > 0;
         }
 

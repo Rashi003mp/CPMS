@@ -1,4 +1,5 @@
 ﻿using ConstructionPM.Application.DTOs;
+using ConstructionPM.Application.Validators.Common;
 using ConstructionPM.Application.Validators.Interface;
 using ConstructionPM.Domain.Enums;
 using System;
@@ -13,41 +14,23 @@ namespace ConstructionPM.Application.Validators.Implimentations
     public class RegistrationValidator : IRegistrationValidator
     {
 
-        private static readonly Regex NameRegex = new(@"^[a-zA-Z\s'-]{1,50}$");
-        private static readonly Regex EmailRegex = new(
-            @"^[a-zA-Z0-9][a-zA-Z0-9._%+-]*@[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$");
-        private static readonly Regex PhoneRegex = new(@"^(\+91[ \-\s]?)?[6-9]\d{9}$");
+        private readonly ICommonValidator _commonValidator;
+
+        public RegistrationValidator(ICommonValidator commonValidator)
+        {
+            _commonValidator = commonValidator;
+        }
+
         public void ValidateRegistrationRequest(RegistrationRequestDto request)
         {
-            NormalizeEmail(request);
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
 
-            ValidateCommonFields(request);
+            request.Email = _commonValidator.NormalizeAndValidateEmail(request.Email);
+            _commonValidator.ValidateName(request.Name);
+            _commonValidator.ValidatePhone(request.PhoneNumber);
+
             ValidateByRole(request);
-        }
-
-        private static void NormalizeEmail(RegistrationRequestDto request)
-        {
-            if (!string.IsNullOrWhiteSpace(request.Email))
-            {
-                request.Email = request.Email.Trim().ToLowerInvariant();
-            }
-        }
-        private static void ValidateCommonFields(RegistrationRequestDto request)
-        {
-            if (string.IsNullOrWhiteSpace(request.Name))
-                throw new ArgumentException("Name is required");
-            if (!NameRegex.IsMatch(request.Name))
-                throw new ArgumentException("Invalid name format");
-            if (string.IsNullOrWhiteSpace(request.Email))
-                throw new ArgumentException("Email is required");
-            if (!EmailRegex.IsMatch(request.Email))
-                throw new ArgumentException("Invalid email format");
-
-            if (string.IsNullOrWhiteSpace(request.PhoneNumber))
-                throw new ArgumentException("Phone number is required");
-            if (!PhoneRegex.IsMatch(request.PhoneNumber))
-                throw new ArgumentException("Invalid phone number format(+91 or 10 digits) ");
-
         }
 
         private static void ValidateByRole(RegistrationRequestDto request)
