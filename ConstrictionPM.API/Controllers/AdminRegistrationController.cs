@@ -41,9 +41,9 @@ namespace ConstrictionPM.API.Controllers
         }
 
         [HttpPost("requests/{id}/reject")]
-        public async Task<IActionResult> Reject(int id)
+        public async Task<IActionResult> Reject(int id,  string rejectionReason)
         {
-            await _service.RejectAsync(id);
+            await _service.RejectAsync(id, rejectionReason);
             var response = ApiResponse.SuccessResponse("Registration rejected");
             return Ok(response);
         }

@@ -9,7 +9,7 @@ namespace ConstructionPM.Application.Interfaces.Services
     public interface IAdminApprovalService
     {
         Task ApproveAsync(int requestId);
-        Task RejectAsync(int requestId);
+        Task RejectAsync(int requestId , string rejectionReason);
     }
 
 }

@@ -74,13 +74,19 @@ namespace ConstructionPM.Application.Services
     );
         }
 
-        public async Task RejectAsync(int requestId)
+        public async Task RejectAsync(int requestId , string rejectionReason)
         {
             var request = await _registrationQuery.GetByIdAsync(requestId);
             if (request == null || request.Status != "Pending")
                 throw new InvalidOperationException("Invalid registration request");
             request.Status = "Rejected";
-            await _genericRepo.UpdateAsync(request);/**/
+            request.RejectionReason = rejectionReason;
+            await _genericRepo.UpdateAsync(request);
+
+            await _emailService.SendRejectionEmailAsync(
+                request.Email,
+                request.Name,
+                rejectionReason);
         }
 
     }

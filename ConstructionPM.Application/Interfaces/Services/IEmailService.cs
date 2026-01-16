@@ -18,5 +18,10 @@ namespace ConstructionPM.Application.Interfaces.Services
            string toEmail,
            string fullName,
            string resetLink);
+
+        Task SendRejectionEmailAsync(
+       string toEmail,
+       string fullName,
+       string rejectionReason);
     }
 }

@@ -13,6 +13,7 @@ namespace ConstructionPM.Domain.Entities
         public string Phone { get; set; } = null!;
         public string? RoleName { get; set; }
 
+        public string? RejectionReason { get; set; }
         public int? ExperienceYears { get; set; }   // PM / Engineer
         public string? Skills { get; set; }          // Engineer
 
