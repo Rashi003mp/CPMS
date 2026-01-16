@@ -39,7 +39,7 @@ public class AuthController : ControllerBase
 
         // Password verification
         var result = _passwordHasher.VerifyHashedPassword(
-            user: null!,                  // not needed by implementation
+            user: null!,                  
             hashedPassword: user.PasswordHash,
             providedPassword: request.Password
         );
@@ -49,7 +49,7 @@ public class AuthController : ControllerBase
 
         var token = _jwt.GenerateToken(
             user.Id,
-            user.RoleName,
+            user.RoleName.ToString(),
             user.Name
         );
 

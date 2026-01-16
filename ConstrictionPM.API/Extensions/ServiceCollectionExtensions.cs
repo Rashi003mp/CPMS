@@ -41,8 +41,6 @@ namespace ConstructionPM.API.Extensions
             // ---------- Repositories ----------
             services.AddScoped<IUserCommandRepository, UserCommandRepository>();
             services.AddScoped<IUserQueryRepository, UserQueryRepository>();
-            services.AddScoped<IRoleCommandRepository, RoleCommandRepository>();
-            services.AddScoped<IRoleQueryRepository, RoleQueryRepository>();
             services.AddScoped<IRegistrationCommandRepository, RegistrationCommandRepository>();
             services.AddScoped<IRegistrationQueryRepository, RegistrationQueryRepository>();
             services.AddScoped<IProjectCommandRepository, ProjectCommandRepository>();

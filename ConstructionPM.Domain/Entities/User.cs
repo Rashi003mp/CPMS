@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ConstructionPM.Domain.Enums;
 
 namespace ConstructionPM.Domain.Entities
 {
@@ -15,7 +11,8 @@ namespace ConstructionPM.Domain.Entities
         public string Phone { get; set; } = null!;
 
         public string PasswordHash { get; set; } = null!;
-        public int RoleId { get; set; }
+
+        public RegistrationRole RoleId { get; set; }
 
         public string? ResetToken { get; set; }
         public DateTime? ResetTokenExpiry { get; set; }

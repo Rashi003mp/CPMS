@@ -20,7 +20,6 @@ namespace ConstructionPM.Infrastructure.Persistence
         // DbSets
         // =========================
         public DbSet<User> Users => Set<User>();
-        public DbSet<Role> Roles => Set<Role>();
         public DbSet<Project> Projects => Set<Project>();
         public DbSet<TaskItem> Tasks => Set<TaskItem>();
         public DbSet<Document> Documents => Set<Document>();
@@ -101,7 +100,6 @@ namespace ConstructionPM.Infrastructure.Persistence
         {
             // Global soft delete filter
             modelBuilder.Entity<User>().HasQueryFilter(x => !x.IsDeleted);
-            modelBuilder.Entity<Role>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<Project>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<TaskItem>().HasQueryFilter(x => !x.IsDeleted);
             modelBuilder.Entity<Document>().HasQueryFilter(x => !x.IsDeleted);
