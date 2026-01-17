@@ -7,18 +7,18 @@ using ConstructionPM.Domain.Entities;
 
 namespace ConstructionPM.Application.Services
 {
-    
+
 
     public class ProjectService : IProjectService
     {
 
-        private readonly IProjectCommandRepository _command;
-        private readonly IProjectQueryRepository _query;
 
-        public ProjectService(IProjectCommandRepository command,IProjectQueryRepository query)
+        private readonly IGenericRepository<Project> _repository;
+
+
+        public ProjectService(IGenericRepository<Project> repository)
         {
-            _command = command;
-            _query = query;
+            _repository = repository;
         }
         public async Task CreateAsync(CreateProjectDto dto)
         {
@@ -31,18 +31,22 @@ namespace ConstructionPM.Application.Services
                 Status = dto.Status.ToString()
             };
 
-            await _command.CreateAsync(Project);
+            await _repository.AddAsync(Project);
         }
 
-        public async Task<Project?> GetByIdAsync(int id)
+        public async Task<Project> GetByIdAsync(int id)
         {
-            //throw new NotImplementedException();
-            return await _query.GetByIdAsync(id);
+            var project = await _repository.GetByIdAsync(id);
+
+            if (project == null)
+                throw new DirectoryNotFoundException($"Project with id {id} not found");
+
+            return project;
         }
 
         public async Task<IEnumerable<Project>> GetAllAsync()
         {
-            return await _query.GetAllAsync();
+            return await _repository.GetAllAsync();
         }
     }
 }

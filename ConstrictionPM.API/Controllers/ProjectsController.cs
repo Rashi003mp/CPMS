@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using ConstructionPM.Application.DTOs;
+﻿using ConstructionPM.Application.DTOs;
+using ConstructionPM.Application.DTOs.Response;
 using ConstructionPM.Application.Interfaces.Services;
+using ConstructionPM.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ConstrictionPM.API.Controllers
 {
@@ -19,29 +21,36 @@ namespace ConstrictionPM.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles= "Admin,ProjectManager")]
-        public async Task<IActionResult> Create([FromForm]CreateProjectDto request)
+        [Authorize(Roles = "Admin,ProjectManager")]
+        public async Task<IActionResult> Create([FromForm] CreateProjectDto request)
         {
             await _service.CreateAsync(request);
-            return Ok();
+            return Ok(ApiResponse.SuccessResponse("Project created successfully"));
         }
 
         [HttpGet("{id}")]
         [Authorize]
         public async Task<IActionResult> Get(int id)
         {
-            var projects = await _service.GetByIdAsync(id);
+            var project = await _service.GetByIdAsync(id);
 
-            return projects == null ? NotFound() : Ok(projects);
-
+            return Ok(
+            ApiResponse<Project>.SuccessResponse(
+            project,
+            "Project retrieved successfully",
+            HttpContext.TraceIdentifier)
+             );
         }
 
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> GetAll()
         {
-            var project=await _service.GetAllAsync();
-            return Ok(project);
+            var projects = await _service.GetAllAsync();
+            return Ok(
+                ApiResponse<IEnumerable<Project>>.SuccessResponse(
+                    projects, "Projects retrieved successfully")
+                );
 
         }
 

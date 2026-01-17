@@ -7,7 +7,7 @@ namespace ConstructionPM.Application.Interfaces.Services
     {
         Task CreateAsync(CreateProjectDto dto);
 
-        Task<Project?> GetByIdAsync(int id);
+        Task<Project> GetByIdAsync(int id);
 
         Task<IEnumerable<Project>>  GetAllAsync();
 

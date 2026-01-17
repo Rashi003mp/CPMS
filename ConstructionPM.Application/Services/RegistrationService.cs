@@ -26,7 +26,6 @@ namespace ConstructionPM.Application.Services
         public async Task RegisterAsync(RegistrationRequestDto request)
         {
 
-            Console.WriteLine("Role name"+request.RoleName);
             _validator.ValidateRegistrationRequest(request);
             var entity = MapToEntity(request);
             await _genericRepository.AddAsync(entity);
