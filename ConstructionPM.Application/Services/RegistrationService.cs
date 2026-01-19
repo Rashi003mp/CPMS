@@ -11,28 +11,40 @@ namespace ConstructionPM.Application.Services
 {
     public class RegistrationService : IRegistrationService
     {
+        private readonly IUserCommandRepository _userCommand;
         private readonly IRegistrationCommandRepository _command;
         private readonly IGenericRepository<RegistrationRequest> _genericRepository;
         private readonly IRegistrationValidator _validator;
         public RegistrationService(IRegistrationCommandRepository command,
             IGenericRepository<RegistrationRequest> genericRepository,
-            IRegistrationValidator validator)
+            IRegistrationValidator validator,
+            IUserCommandRepository userCommand)
         {
             _command = command;
             _genericRepository = genericRepository;
             _validator = validator;
+            _userCommand = userCommand;
         }
 
         public async Task RegisterAsync(RegistrationRequestDto request)
         {
 
             _validator.ValidateRegistrationRequest(request);
+            var emailExists = await _userCommand.ExistsByEmailAsync(request.Email);
+
+            if (emailExists)
+            {
+                throw new InvalidOperationException("Email already exists");
+            }
+         
+
             var entity = MapToEntity(request);
             await _genericRepository.AddAsync(entity);
         }
 
         private static RegistrationRequest MapToEntity(RegistrationRequestDto r)
         {
+            //
             //var roleName = r.RoleName.ToString();
             Console.WriteLine("role name" +r.RoleName);
 

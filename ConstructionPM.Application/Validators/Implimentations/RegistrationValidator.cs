@@ -1,7 +1,9 @@
 ﻿using ConstructionPM.Application.DTOs;
+using ConstructionPM.Application.Exception;
 using ConstructionPM.Application.Validators.Common;
 using ConstructionPM.Application.Validators.Interface;
 using ConstructionPM.Domain.Enums;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +26,15 @@ namespace ConstructionPM.Application.Validators.Implimentations
         public void ValidateRegistrationRequest(RegistrationRequestDto request)
         {
             if (request == null)
-                throw new ArgumentNullException(nameof(request));
+            {
+                throw new BusinessException("Invalid registration details");
+            }
+
+            if (request.RoleName == RegistrationRole.Admin)
+            {
+                throw new BusinessException("Admin registration is not allowed");
+            }
+
 
             request.Email = _commonValidator.NormalizeAndValidateEmail(request.Email);
             _commonValidator.ValidateName(request.Name);
@@ -60,16 +70,28 @@ namespace ConstructionPM.Application.Validators.Implimentations
         {
             if (request.ExperienceYears is null || request.ExperienceYears <= 0)
                 throw new ArgumentException("ExperienceYear is required must be graeter that 0 for ProjrctManger");
+            if (request.Skills is null)
+                throw new ArgumentException("Skill is required ");
+            if(!string.IsNullOrWhiteSpace(request.ProjectName))
+                throw new ArgumentException("ProjectName is not required ");
+
         }
 
         private static void ValidateSiteEngineer(RegistrationRequestDto request)
         {
-            if (string.IsNullOrWhiteSpace(request.Skills))
+            
+            if (string.IsNullOrWhiteSpace(request.Skills) )
                 throw new ArgumentException("Skill is required for SiteEngineer");
+            if (!string.IsNullOrEmpty(request.ProjectName) )
+                throw new ArgumentException("ProjectName is not required for SiteEngineer");
         }
 
         private static void ValidateClient(RegistrationRequestDto request)
         {
+            if (request.ExperienceYears != null )
+                throw new ArgumentException("ExperienceYear is not required ");
+            if (!string.IsNullOrWhiteSpace(request.Skills))
+                throw new ArgumentException("Skill is not required for SiteEngineer");
             if (string.IsNullOrEmpty(request.ProjectName))
                 throw new ArgumentException("Project Name is required for clients");
         }

@@ -41,6 +41,13 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         _dbSet.Update(entity);
         await _context.SaveChangesAsync();
     }
+
+    //public async Task<bool> ExistsByEmailAsync(string email)
+    //{
+    //    return await _context.Users
+    //        .AsNoTracking()
+    //        .AnyAsync(u => u.Email == email);
+    //}
 }
 
 

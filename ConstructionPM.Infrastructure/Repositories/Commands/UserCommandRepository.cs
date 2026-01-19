@@ -1,6 +1,7 @@
-﻿using ConstructionPM.Domain.Entities;
+﻿using ConstructionPM.Application.Interfaces.Repositories.Commands;
+using ConstructionPM.Domain.Entities;
 using ConstructionPM.Infrastructure.Persistence;
-using ConstructionPM.Application.Interfaces.Repositories.Commands;
+using Microsoft.EntityFrameworkCore;
 
 namespace ConstructionPM.Infrastructure.Repositories.Commands;
 
@@ -34,4 +35,11 @@ public class UserCommandRepository : IUserCommandRepository
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();
     }
+    public async Task<bool> ExistsByEmailAsync(string? email)
+    {
+        return await _context.Users
+        .AsNoTracking()
+        .AnyAsync(u => u.Email == email);
+    }
+
 }

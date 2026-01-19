@@ -1,4 +1,5 @@
-﻿using ConstructionPM.Application.Interfaces.Auth;
+﻿using ConstructionPM.Application.DTOs.Response;
+using ConstructionPM.Application.Interfaces.Auth;
 using ConstructionPM.Application.Interfaces.Repositories.Commands;
 using ConstructionPM.Application.Interfaces.Repositories.Queries;
 using ConstructionPM.Application.Interfaces.Services;
@@ -10,23 +11,17 @@ namespace ConstructionPM.Application.Services
 {
     public class AdminApprovalService : IAdminApprovalService
     {
-        private readonly IRegistrationQueryRepository _registrationQuery;
-        private readonly IRegistrationCommandRepository _registrationCommand;
         private readonly IUserCommandRepository _userCommand;
         private readonly IPasswordService _passwordservice;
         private readonly IEmailService _emailService;
         private readonly IGenericRepository<RegistrationRequest> _genericRepo;
 
         public AdminApprovalService(
-            IRegistrationQueryRepository registrationQuery,
-            IRegistrationCommandRepository registrationCommand,
             IUserCommandRepository userCommand,
             IPasswordService PasswordService,
             IEmailService emailService,
             IGenericRepository<RegistrationRequest> genericRepo)
         {
-            _registrationQuery = registrationQuery;
-            _registrationCommand = registrationCommand;
             _userCommand = userCommand;
             _passwordservice = PasswordService;
             _emailService = emailService;
@@ -36,10 +31,16 @@ namespace ConstructionPM.Application.Services
         public async Task ApproveAsync(int requestId)
         {
             var request = await _genericRepo.GetByIdAsync(requestId);
+            if (await _userCommand.ExistsByEmailAsync(request.Email))
+            {
+                throw new InvalidOperationException("Email already exists");
+            }
             if (request == null || request.Status != "Pending")
                 throw new InvalidOperationException("Invalid registration request");
 
-            
+
+
+
 
             var user = new User
             {
@@ -68,9 +69,9 @@ namespace ConstructionPM.Application.Services
     );
         }
 
-        public async Task RejectAsync(int requestId , string rejectionReason)
+        public async Task RejectAsync(int requestId, string rejectionReason)
         {
-            var request = await _registrationQuery.GetByIdAsync(requestId);
+            var request = await _genericRepo.GetByIdAsync(requestId);
             if (request == null || request.Status != "Pending")
                 throw new InvalidOperationException("Invalid registration request");
             request.Status = "Rejected";
@@ -82,6 +83,8 @@ namespace ConstructionPM.Application.Services
                 request.Name,
                 rejectionReason);
         }
+
+
 
     }
 }

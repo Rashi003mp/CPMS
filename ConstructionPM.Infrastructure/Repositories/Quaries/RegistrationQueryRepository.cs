@@ -1,4 +1,5 @@
-﻿using ConstructionPM.Application.DTOs.Admin;
+﻿using ConstructionPM.Application.DTOs;
+using ConstructionPM.Application.DTOs.Admin;
 using ConstructionPM.Application.Interfaces.Repositories.Queries;
 using ConstructionPM.Domain.Entities;
 using ConstructionPM.Infrastructure.Dapper;
@@ -18,7 +19,7 @@ namespace ConstructionPM.Infrastructure.Repositories.Quaries
             _db = db;
         }
 
-        public async Task<IEnumerable<dynamic>> GetPendingAsync()
+        public async Task<IEnumerable<PendingRegistrationDto>> GetPendingAsync()
         {
             const string sql = """
             SELECT Id, Name, Email, RoleName, CreatedAt
@@ -28,7 +29,7 @@ namespace ConstructionPM.Infrastructure.Repositories.Quaries
             ORDER BY CreatedAt
         """;
 
-            return await _db.QueryAsync<dynamic>(sql);
+            return await _db.QueryAsync<PendingRegistrationDto>(sql);
         }
 
         public async Task<RegistrationRequest?> GetByIdAsync(int id)

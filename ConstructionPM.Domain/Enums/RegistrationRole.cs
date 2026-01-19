@@ -1,17 +1,11 @@
-﻿using ConstructionPM.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace ConstructionPM.Domain.Enums
 {
     public enum RegistrationRole
     {
-        Admin,
-        ProjectManager,
-        SiteEngineer,
-        Client
+        Admin = 0,
+        ProjectManager = 1,
+        SiteEngineer = 2,
+        Client =3
     }
 }

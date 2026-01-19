@@ -1,4 +1,5 @@
-﻿using ConstructionPM.Application.DTOs.Admin;
+﻿using ConstructionPM.Application.DTOs;
+using ConstructionPM.Application.DTOs.Admin;
 using ConstructionPM.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ namespace ConstructionPM.Application.Interfaces.Repositories.Queries
 {
     public interface IRegistrationQueryRepository
     {
-        Task<IEnumerable<dynamic>> GetPendingAsync();
+        Task<IEnumerable<PendingRegistrationDto>> GetPendingAsync();
         Task<RegistrationRequest?> GetByIdAsync(int id);
     }
 

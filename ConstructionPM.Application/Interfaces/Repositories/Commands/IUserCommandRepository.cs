@@ -12,5 +12,7 @@ namespace ConstructionPM.Application.Interfaces.Repositories.Commands
         Task<int> CreateAsync(User user);
         Task UpdateAsync(User user);
         Task DeleteAsync(int id);
+
+        Task<bool> ExistsByEmailAsync(string email);
     }
 }

@@ -1,6 +1,7 @@
+using ConstructionPM.Application.DTOs.Response;
+using ConstructionPM.Application.Exception;
 using System.Net;
 using System.Text.Json;
-using ConstructionPM.Application.DTOs.Response;
 
 namespace ConstructionPM.API.Middleware
 {
@@ -34,6 +35,8 @@ namespace ConstructionPM.API.Middleware
 
             var (statusCode, message) = exception switch
             {
+                BusinessException => (HttpStatusCode.BadRequest, exception.Message),
+
                 ArgumentNullException => (HttpStatusCode.BadRequest, $"Invalid input: {exception.Message}"),
                 ArgumentException => (HttpStatusCode.BadRequest, exception.Message),
                 UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "Unauthorized access"),
