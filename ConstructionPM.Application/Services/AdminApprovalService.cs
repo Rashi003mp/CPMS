@@ -30,13 +30,15 @@ namespace ConstructionPM.Application.Services
 
         public async Task ApproveAsync(int requestId)
         {
+            // give condition to check id
             var request = await _genericRepo.GetByIdAsync(requestId);
+            if (request == null || request.Status != "Pending")
+                throw new InvalidOperationException("Invalid registration request");
+
             if (await _userCommand.ExistsByEmailAsync(request.Email))
             {
                 throw new InvalidOperationException("Email already exists");
             }
-            if (request == null || request.Status != "Pending")
-                throw new InvalidOperationException("Invalid registration request");
 
 
 

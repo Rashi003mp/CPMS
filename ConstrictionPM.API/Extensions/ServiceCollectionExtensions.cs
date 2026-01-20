@@ -44,8 +44,9 @@ namespace ConstructionPM.API.Extensions
             services.AddScoped<IUserQueryRepository, UserQueryRepository>();
             services.AddScoped<IRegistrationCommandRepository, RegistrationCommandRepository>();
             services.AddScoped<IRegistrationQueryRepository, RegistrationQueryRepository>();
-            //services.AddScoped<IProjectCommandRepository, ProjectCommandRepository>();
+            services.AddScoped<IProjectCommandRepository, ProjectCommandRepository>();
             //services.AddScoped<IProjectQueryRepository, ProjectQueryRepository>();
+            services.AddScoped<IAuthService, AuthService>();
 
             // validators
             services.AddScoped<ICommonValidator, CommonValidator>();

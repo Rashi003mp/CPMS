@@ -3,7 +3,9 @@ using ConstructionPM.Application.Interfaces.Repositories.Queries;
 using ConstructionPM.Domain.Entities;
 using ConstructionPM.Domain.Enums;
 using ConstructionPM.Infrastructure.Dapper;
+using ConstructionPM.Infrastructure.Persistence;
 using Dapper;
+using Microsoft.EntityFrameworkCore;
 using System.Data;
 
 
@@ -12,10 +14,12 @@ namespace ConstructionPM.Infrastructure.Repositories.Quaries
     public class UserQueryRepository : IUserQueryRepository
     {
         private readonly DapperContext _context;
+        private readonly AppDbContext _db;
 
-        public UserQueryRepository(DapperContext context)
+        public UserQueryRepository(DapperContext context, AppDbContext db)
         {
             _context = context;
+            _db = db;
         }
 
         public async Task<UserDto?> GetByEmailAsync(string email)
@@ -57,7 +61,7 @@ namespace ConstructionPM.Infrastructure.Repositories.Quaries
 
             var count = await connection.ExecuteScalarAsync<int>(
                 sql,
-                new { AdminRole = (int)RegistrationRole.Admin }
+                new { AdminRole = "Admin" }
             );
 
             return count > 0;
@@ -100,7 +104,14 @@ namespace ConstructionPM.Infrastructure.Repositories.Quaries
         }
 
 
+        public async Task<User?> ByEmailAsync(string email)
+        {
+            var normalizedEmail = email.Trim().ToLower();
 
+            return await _db.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+        }
 
     }
 }

@@ -15,7 +15,6 @@ namespace ConstructionPM.Application.Interfaces.Repositories.Commands
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
 
-        //Task ExistsByEmailAsync(string email);
     }
 
 }

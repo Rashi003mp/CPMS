@@ -1,4 +1,5 @@
 ﻿using ConstructionPM.Application.Interfaces.Repositories.Commands;
+using ConstructionPM.Domain.Entities;
 using ConstructionPM.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,12 +43,16 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         await _context.SaveChangesAsync();
     }
 
-    //public async Task<bool> ExistsByEmailAsync(string email)
-    //{
-    //    return await _context.Users
-    //        .AsNoTracking()
-    //        .AnyAsync(u => u.Email == email);
-    //}
+    public async Task<bool> ExistsByEmailAsync(string email)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .AnyAsync(u => u.Email == email);
+    }
+
+    
+
+
 }
 
 

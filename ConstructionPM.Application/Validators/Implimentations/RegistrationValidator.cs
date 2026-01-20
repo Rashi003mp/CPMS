@@ -29,13 +29,7 @@ namespace ConstructionPM.Application.Validators.Implimentations
             {
                 throw new BusinessException("Invalid registration details");
             }
-
-            if (request.RoleName == RegistrationRole.Admin)
-            {
-                throw new BusinessException("Admin registration is not allowed");
-            }
-
-
+                        
             request.Email = _commonValidator.NormalizeAndValidateEmail(request.Email);
             _commonValidator.ValidateName(request.Name);
             _commonValidator.ValidatePhone(request.PhoneNumber);

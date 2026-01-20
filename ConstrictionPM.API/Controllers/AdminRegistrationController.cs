@@ -35,6 +35,7 @@ namespace ConstrictionPM.API.Controllers
         [HttpPost("requests/{id}/approve")]
         public async Task<IActionResult> Approve(int id)
         {
+            
             await _service.ApproveAsync(id);
             var response = ApiResponse.SuccessResponse("Registration approved");
             return Ok(response);

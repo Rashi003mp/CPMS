@@ -1,7 +1,9 @@
 ﻿using ConstructionPM.Application.DTOs;
+using ConstructionPM.Application.DTOs.Response;
 using ConstructionPM.Application.Interfaces.Auth;
 using ConstructionPM.Application.Interfaces.Repositories.Queries;
 using ConstructionPM.Application.Interfaces.Services;
+using ConstructionPM.Application.Services;
 using ConstructionPM.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,15 +18,18 @@ public class AuthController : ControllerBase
     private readonly IJwtTokenGenerator _jwt;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly IPasswordRecoveryService _service;
+    private readonly IAuthService _authService;
 
     public AuthController(
         IUserQueryRepository userQuery,
         IJwtTokenGenerator jwt,
         IPasswordHasher<User> passwordHasher,
-        IPasswordRecoveryService service
+        IPasswordRecoveryService service,
+        IAuthService authService
         )
     {
         _userQuery = userQuery;
+        _authService = authService;
         _jwt = jwt;
         _passwordHasher = passwordHasher;
         _service = service;
@@ -33,28 +38,11 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequestDto request)
     {
-        var user = await _userQuery.GetForLoginAsync(request.Email);
-        if (user == null)
-            return Unauthorized("Invalid credentials");
-
-        // Password verification
-        var result = _passwordHasher.VerifyHashedPassword(
-            user: null!,                  
-            hashedPassword: user.PasswordHash,
-            providedPassword: request.Password
-        );
-
-        if (result == PasswordVerificationResult.Failed)
-            return Unauthorized("Invalid credentials");
-
-        var token = _jwt.GenerateToken(
-            user.Id,
-            user.RoleName.ToString(),
-            user.Name
-        );
-
-        return Ok(new { token });
+        var token = await _authService.LoginAsync(request);
+        var reponse = ApiResponse<string>.SuccessResponse(token);
+        return Ok(reponse);
     }
+
 
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword(

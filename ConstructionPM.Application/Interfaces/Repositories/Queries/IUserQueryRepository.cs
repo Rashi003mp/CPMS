@@ -21,7 +21,7 @@ namespace ConstructionPM.Application.Interfaces.Repositories.Queries
 
         Task<User?> GetByEntityEmailAsync(string email);
 
-
+        Task<User?> ByEmailAsync(string email);
 
 
     }

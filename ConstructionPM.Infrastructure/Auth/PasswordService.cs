@@ -24,5 +24,16 @@ namespace ConstructionPM.Infrastructure.Auth
             return _hasher.HashPassword(null!, password);
         }
 
+        public bool Verify(string hashedPassword, string providedPassword)
+        {
+            var result = _hasher.VerifyHashedPassword(
+                null!,
+                hashedPassword,
+                providedPassword
+            );
+
+            return result != PasswordVerificationResult.Failed;
+        }
+
     }
 }

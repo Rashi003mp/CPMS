@@ -9,5 +9,7 @@ namespace ConstructionPM.Application.Interfaces.Auth
     public interface IPasswordService
     {
         string HashPassword(string password);
+         bool Verify(string hashedPassword, string providedPassword);
     }
+
 }

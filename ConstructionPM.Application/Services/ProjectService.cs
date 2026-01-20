@@ -22,6 +22,8 @@ namespace ConstructionPM.Application.Services
         }
         public async Task CreateAsync(CreateProjectDto dto)
         {
+
+
             var Project = new Project
             {
                 ProjectName = dto.ProjectName,
@@ -48,5 +50,8 @@ namespace ConstructionPM.Application.Services
         {
             return await _repository.GetAllAsync();
         }
+
+
+
     }
 }

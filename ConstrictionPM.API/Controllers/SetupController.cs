@@ -49,7 +49,7 @@ namespace ConstrictionPM.API.Controllers
             {
                 Name = request.Name,
                 Email = request.Email,
-                RoleId = RegistrationRole.Admin
+                RoleId = 0
 
             };
 

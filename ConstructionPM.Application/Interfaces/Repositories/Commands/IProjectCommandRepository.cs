@@ -9,7 +9,6 @@ namespace ConstructionPM.Application.Interfaces.Repositories.Commands
 {
     public interface IProjectCommandRepository
     {
-        Task CreateAsync(Project project);
-        Task UpdateAsync(Project project);
+        Task<bool> ExistsByNameAsync(string name);
     }
 }

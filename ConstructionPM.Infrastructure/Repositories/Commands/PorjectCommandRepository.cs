@@ -1,30 +1,25 @@
-﻿//using ConstructionPM.Application.Interfaces.Repositories.Commands;
-//using ConstructionPM.Infrastructure.Persistence;
+﻿using ConstructionPM.Application.Interfaces.Repositories.Commands;
+using ConstructionPM.Domain.Entities;
+using ConstructionPM.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
-//using ConstructionPM.Domain.Entities;
+namespace ConstructionPM.Infrastructure.Repositories.Commands
+{
+    public class ProjectCommandRepository : IProjectCommandRepository
+    {
+        private readonly AppDbContext _context;
 
-//namespace ConstructionPM.Infrastructure.Repositories.Commands
-//{
-//    public class ProjectCommandRepository : IProjectCommandRepository
-//    {
-//        private readonly AppDbContext _context;
+        public ProjectCommandRepository(AppDbContext context)
+        {
+            _context = context;
+        }
+        public async Task<bool> ExistsByNameAsync(string name)
+        {
+            var normalizedName = name.Trim().ToLower();
 
-//        public ProjectCommandRepository(AppDbContext context)
-//        {
-//            _context = context;
-//        }
-
-//    public async Task CreateAsync(Project project)
-//        {
-//            _context.Projects.Add(project);
-//            await  _context.SaveChangesAsync();
-//        }
-
-//    public async Task UpdateAsync(Project project)
-//        {
-//            _context.Projects.Update(project);
-//            await _context.SaveChangesAsync();
-//        }
-
-//    }
-//}
+            return await _context.Projects
+                .AsNoTracking()
+                .AnyAsync(p => p.ProjectName.ToLower() == normalizedName);
+        }
+    }
+}

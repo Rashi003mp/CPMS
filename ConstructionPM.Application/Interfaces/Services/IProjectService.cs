@@ -12,5 +12,7 @@ namespace ConstructionPM.Application.Interfaces.Services
         Task<IEnumerable<Project>>  GetAllAsync();
 
 
+
+
     }
 }

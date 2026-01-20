@@ -39,7 +39,7 @@ public class UserCommandRepository : IUserCommandRepository
     {
         return await _context.Users
         .AsNoTracking()
-        .AnyAsync(u => u.Email == email);
+        .AnyAsync(u => u.Email == email && !u.IsDeleted);
     }
 
 }

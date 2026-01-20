@@ -31,7 +31,7 @@ namespace ConstructionPM.Application.Services
 
             _validator.ValidateRegistrationRequest(request);
             var emailExists = await _userCommand.ExistsByEmailAsync(request.Email);
-
+            Console.WriteLine(emailExists);
             if (emailExists)
             {
                 throw new InvalidOperationException("Email already exists");
@@ -44,14 +44,10 @@ namespace ConstructionPM.Application.Services
 
         private static RegistrationRequest MapToEntity(RegistrationRequestDto r)
         {
-            //
-            //var roleName = r.RoleName.ToString();
-            Console.WriteLine("role name" +r.RoleName);
-
             return new RegistrationRequest
             {
                 Name = r.Name.ToLower().Trim(),
-                Email = r.Email.ToLower().Trim(),
+                Email = r.Email,
                 Phone = r.PhoneNumber,
                 RoleName = r.RoleName,
                 ExperienceYears = r.ExperienceYears,
