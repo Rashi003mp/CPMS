@@ -1,57 +1,80 @@
 ﻿using ConstructionPM.Application.DTOs;
+using ConstructionPM.Application.DTOs.Projects;
+using ConstructionPM.Application.Interfaces;
 using ConstructionPM.Application.Interfaces.Repositories.Commands;
-using ConstructionPM.Application.Interfaces.Repositories.Queries;
 using ConstructionPM.Application.Interfaces.Services;
+using ConstructionPM.Application.Interfaces.UoW;
 using ConstructionPM.Domain.Entities;
-
 
 namespace ConstructionPM.Application.Services
 {
-
-
     public class ProjectService : IProjectService
     {
+        private readonly IProjectCommandRepository _projectRepository;
+        private readonly IProjectStatusHistoryCommandRepository _historyRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-
-        private readonly IGenericRepository<Project> _repository;
-
-
-        public ProjectService(IGenericRepository<Project> repository)
+        public ProjectService(
+            IProjectCommandRepository projectRepository,
+            IProjectStatusHistoryCommandRepository historyRepository,
+            IUnitOfWork unitOfWork)
         {
-            _repository = repository;
+            _projectRepository = projectRepository;
+            _historyRepository = historyRepository;
+            _unitOfWork = unitOfWork;
         }
-        public async Task CreateAsync(CreateProjectDto dto)
+
+        //public Task CreateAsync(CreateProjectDto dto)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        public async Task<int> CreateAsync(CreateProjectDto dto)
         {
+            await _unitOfWork.BeginTransactionAsync();
 
-
-            var Project = new Project
+            try
             {
-                ProjectName = dto.ProjectName,
-                Description = dto.Description,
-                StartDate = dto.StartDate,
-                EndDate = dto.EndDate,
-                Status = dto.Status.ToString()
-            };
+                var project = new Project
+                {
+                    ProjectName = dto.ProjectName,
+                    Description = dto.Description,
+                    StartDate = dto.StartDate,
+                    EndDate = dto.EndDate,
+                    Status = dto.Status
+                };
 
-            await _repository.AddAsync(Project);
+                await _projectRepository.AddAsync(project);
+                await _unitOfWork.SaveChangesAsync(); // ID generated here
+
+                var history = new ProjectStatusHistory
+                {
+                    ProjectId = project.Id,
+                    Status = dto.Status,
+              };
+
+                await _historyRepository.AddAsync(history);
+                await _unitOfWork.SaveChangesAsync();
+
+                await _unitOfWork.CommitAsync();
+
+                return project.Id;
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
         }
 
-        public async Task<Project> GetByIdAsync(int id)
+        public Task<IEnumerable<Project>> GetAllAsync()
         {
-            var project = await _repository.GetByIdAsync(id);
-
-            if (project == null)
-                throw new DirectoryNotFoundException($"Project with id {id} not found");
-
-            return project;
+            throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<Project>> GetAllAsync()
+        public Task<Project> GetByIdAsync(int id)
         {
-            return await _repository.GetAllAsync();
+            throw new NotImplementedException();
         }
-
-
-
     }
 }

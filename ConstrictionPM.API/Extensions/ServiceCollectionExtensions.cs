@@ -3,6 +3,7 @@ using ConstructionPM.Application.Interfaces.Auth;
 using ConstructionPM.Application.Interfaces.Repositories.Commands;
 using ConstructionPM.Application.Interfaces.Repositories.Queries;
 using ConstructionPM.Application.Interfaces.Services;
+using ConstructionPM.Application.Interfaces.UoW;
 using ConstructionPM.Application.Services;
 using ConstructionPM.Application.Validators.Common;
 using ConstructionPM.Application.Validators.Implimentations;
@@ -13,6 +14,7 @@ using ConstructionPM.Infrastructure.Dapper;
 using ConstructionPM.Infrastructure.Persistence;
 using ConstructionPM.Infrastructure.Repositories.Commands;
 using ConstructionPM.Infrastructure.Repositories.Quaries;
+using ConstructionPM.Infrastructure.UoW;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -45,6 +47,7 @@ namespace ConstructionPM.API.Extensions
             services.AddScoped<IRegistrationCommandRepository, RegistrationCommandRepository>();
             services.AddScoped<IRegistrationQueryRepository, RegistrationQueryRepository>();
             services.AddScoped<IProjectCommandRepository, ProjectCommandRepository>();
+            services.AddScoped<IProjectStatusHistoryCommandRepository,ProjectStatusHistoryCommandRepository >();
             //services.AddScoped<IProjectQueryRepository, ProjectQueryRepository>();
             services.AddScoped<IAuthService, AuthService>();
 
@@ -53,6 +56,8 @@ namespace ConstructionPM.API.Extensions
             services.AddScoped<IRegistrationValidator, RegistrationValidator>();
             services.AddScoped<IAdminUserSetupValidator, AdminUserSetupValidator>();
 
+            // ---------- Unit of Work ----------
+            services.AddScoped<IUnitOfWork,UnitOfWork>();
 
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 

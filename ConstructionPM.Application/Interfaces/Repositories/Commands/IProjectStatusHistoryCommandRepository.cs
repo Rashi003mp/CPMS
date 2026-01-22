@@ -1,5 +1,4 @@
 ﻿using ConstructionPM.Domain.Entities;
-using ConstructionPM.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,12 +7,8 @@ using System.Threading.Tasks;
 
 namespace ConstructionPM.Application.Interfaces.Repositories.Commands
 {
-    public interface IProjectCommandRepository
+    public interface IProjectStatusHistoryCommandRepository
     {
-        Task<bool> ExistsByNameAsync(string name);
-
-        Task AddAsync(Project project);
-
-        Task UpdateAsync(Guid projectId,ProjectStatus status);
+        Task AddAsync(ProjectStatusHistory history);
     }
 }

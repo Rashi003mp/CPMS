@@ -23,7 +23,7 @@ namespace ConstructionPM.Infrastructure.Persistence
         public DbSet<Project> Projects => Set<Project>();
         public DbSet<TaskItem> Tasks => Set<TaskItem>();
         public DbSet<Document> Documents => Set<Document>();
-        public DbSet<ProjectStatusHistory> ProjectStatusHistories => 
+        public DbSet<ProjectStatusHistory> ProjectStatusHistory =>
             Set<ProjectStatusHistory>();
         public DbSet<RegistrationRequest> RegistrationRequests =>
             Set<RegistrationRequest>();

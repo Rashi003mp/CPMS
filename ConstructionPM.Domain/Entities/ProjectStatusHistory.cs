@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ConstructionPM.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,12 +11,8 @@ namespace ConstructionPM.Domain.Entities
     {
         public int ProjectId { get; set; }
 
-        public int OldStatus { get; set; }
+        public ProjectStatus Status { get; set; }
 
-        public int NewStatus { get; set; }
-
-        public DateTime ChangedAt { get; set; }
-
-        public int ChangedByUserId { get; set; }
+        public string? Remarks { get; set; }
     }
 }

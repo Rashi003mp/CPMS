@@ -1,58 +1,29 @@
 ﻿using ConstructionPM.Application.DTOs;
+using ConstructionPM.Application.DTOs.Projects;
 using ConstructionPM.Application.DTOs.Response;
 using ConstructionPM.Application.Interfaces.Services;
-using ConstructionPM.Domain.Entities;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ConstrictionPM.API.Controllers
+namespace ConstructionPM.API.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/projects")]
     public class ProjectsController : ControllerBase
     {
+        private readonly IProjectService _projectService;
 
-        private readonly IProjectService _service;
-
-        public ProjectsController(IProjectService service)
+        public ProjectsController(IProjectService projectService)
         {
-            _service = service;
+            _projectService = projectService;
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin,ProjectManager")]
-        public async Task<IActionResult> Create([FromForm] CreateProjectDto request)
+        public async Task<IActionResult> Create(CreateProjectDto dto)
         {
-            await _service.CreateAsync(request);
-            return Ok(ApiResponse.SuccessResponse("Project created successfully"));
+            var projectId = await _projectService.CreateAsync(dto);
+            var response = ApiResponse.SuccessResponse("Project created successfully");
+            return Ok(response);
+            ;
         }
-
-        [HttpGet("{id}")]
-        [Authorize]
-        public async Task<IActionResult> Get(int id)
-        {
-            var project = await _service.GetByIdAsync(id);
-
-            return Ok(
-            ApiResponse<Project>.SuccessResponse(
-            project,
-            "Project retrieved successfully",
-            HttpContext.TraceIdentifier)
-             );
-        }
-
-        [HttpGet]
-        [Authorize]
-        public async Task<IActionResult> GetAll()
-        {
-            var projects = await _service.GetAllAsync();
-            return Ok(
-                ApiResponse<IEnumerable<Project>>.SuccessResponse(
-                    projects, "Projects retrieved successfully")
-                );
-
-        }
-
     }
 }

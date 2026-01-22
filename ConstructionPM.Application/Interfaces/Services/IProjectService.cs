@@ -1,11 +1,11 @@
-﻿using ConstructionPM.Application.DTOs;
+﻿using ConstructionPM.Application.DTOs.Projects;
 using ConstructionPM.Domain.Entities;
 
 namespace ConstructionPM.Application.Interfaces.Services
 {
     public interface IProjectService
     {
-        Task CreateAsync(CreateProjectDto dto);
+        Task <int>CreateAsync(CreateProjectDto dto);
 
         Task<Project> GetByIdAsync(int id);
 
