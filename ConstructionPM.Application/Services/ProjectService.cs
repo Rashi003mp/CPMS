@@ -9,11 +9,15 @@ using ConstructionPM.Application.Interfaces.Services;
 using ConstructionPM.Application.Interfaces.UoW;
 using ConstructionPM.Domain.Entities;
 using ConstructionPM.Domain.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace ConstructionPM.Application.Services
 {
     public class ProjectService : IProjectService
     {
+        private readonly ILogger<ProjectService> _logger;
+
+
         private readonly IProjectCommandRepository _projectRepository;
         private readonly IProjectQueryRepository _ProjectQueryRepository;
         private readonly IProjectStatusHistoryCommandRepository _historyRepository;
@@ -25,7 +29,8 @@ namespace ConstructionPM.Application.Services
             IProjectStatusHistoryCommandRepository historyRepository,
             IUnitOfWork unitOfWork,
             IProjectQueryRepository ProjectQueryRepository,
-            IGenericRepository<Project> GenericRepository
+            IGenericRepository<Project> GenericRepository,
+            ILogger<ProjectService> logger
             )
         {
             _projectRepository = projectRepository;
@@ -33,6 +38,7 @@ namespace ConstructionPM.Application.Services
             _unitOfWork = unitOfWork;
             _ProjectQueryRepository = ProjectQueryRepository;
             _genericRepository = GenericRepository;
+            _logger = logger;
         }
 
         public async Task<int> CreateAsync(CreateProjectDto dto)
@@ -73,55 +79,91 @@ namespace ConstructionPM.Application.Services
             }
         }
 
-        public Task<IEnumerable<Project>> GetAllAsync()
+        
+
+        public async Task<ApiResponse<PaginatedResult<ProjectDto>>> GetAllAsync
+            (
+            int page,
+            int pageSize,
+            string? search,
+            ProjectStatus? status
+            )
         {
-            throw new NotImplementedException();
-        }
+            try
+            {
+                page = Math.Max(1, page);
+                pageSize = Math.Clamp(pageSize, 1, 100);
 
-        public async Task<ApiResponse<PaginatedResult<ProjectDto>>> GetAllAsync(int page, int pageSize, string? search, ProjectStatus? status)
-        {
-            page = Math.Max(1, page);
-            pageSize = Math.Clamp(pageSize, 1, 100);
+                var projects = await _ProjectQueryRepository.GetAllAsync();
 
+                if (!string.IsNullOrWhiteSpace(search))
+                    projects = projects.Where(p =>
+                        p.ProjectName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                        (!string.IsNullOrEmpty(p.Description) &&
+                         p.Description.Contains(search, StringComparison.OrdinalIgnoreCase)))
+                        .ToList();
 
-            var projects = await _ProjectQueryRepository.GetAllAsync();
+                if (status.HasValue)
+                    projects = projects.Where(p => p.Status == status.Value).ToList();
 
-            if (!string.IsNullOrWhiteSpace(search))
-                projects = projects.Where(p => p.ProjectName.Contains(search, StringComparison.OrdinalIgnoreCase)
-                    || (p.Description != null && p.Description.Contains(search, StringComparison.OrdinalIgnoreCase)))
+                var totalCount = projects.Count;
+
+                var paginated = projects
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(p => new ProjectDto
+                    {
+                        Id = p.Id,
+                        Name = p.ProjectName,
+                        Description = p.Description,
+                        Status = p.Status.ToString(),
+                        CreatedAt = p.CreatedAt,
+                        CreatedByUserName = p.CreatedByUserName
+                    })
                     .ToList();
 
-            if (status.HasValue)
-                projects = projects.Where(p => p.Status == status.Value).ToList();
+                return ApiResponse<PaginatedResult<ProjectDto>>.SuccessResponse(
+                    new PaginatedResult<ProjectDto>
+                    {
+                        Items = paginated,
+                        TotalCount = totalCount,
+                        Page = page,
+                        PageSize = pageSize
+                    });
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex, "Error while fetching projects");
 
-            var totalCount = projects.Count;
-
-            var paginated = projects
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(p => new ProjectDto
-                {
-                    Id = p.Id,
-                    Name = p.ProjectName,
-                    Description = p.Description,
-                    Status = p.Status.ToString(),
-                    CreatedAt = p.CreatedAt,
-                    CreatedByUserName = p.CreatedByUserName
-                }).ToList();
-                
-            return ApiResponse<PaginatedResult<ProjectDto>>.SuccessResponse(
-                new PaginatedResult<ProjectDto>
-                {
-                    Items = paginated,
-                    TotalCount = totalCount,
-                    Page = page,
-                    PageSize = pageSize
-                });
+                return ApiResponse<PaginatedResult<ProjectDto>>.ErrorResponse(
+                    "An unexpected error occurred while fetching projects.");
+            }
         }
 
-        public Task<Project> GetByIdAsync(int id)
+
+        public async Task<ProjectDto> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            if (id <= 0)
+                throw new ArgumentException("Invalid project ID", nameof(id));
+
+            var project = await _genericRepository.GetByIdAsync(id);
+
+            if (project == null)
+                throw new KeyNotFoundException($"Project with ID {id} not found");
+
+            return 
+                new ProjectDto
+                {
+                    Id = project.Id,
+                    Name = project.ProjectName,
+                    Description = project.Description,
+                    Status = project.Status.ToString(),
+                    CreatedAt = project.CreatedAt,
+                    CreatedByUserName = project.CreatedByUserName
+                };
+
         }
+
+
     }
 }

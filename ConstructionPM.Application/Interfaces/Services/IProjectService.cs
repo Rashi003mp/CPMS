@@ -10,9 +10,9 @@ namespace ConstructionPM.Application.Interfaces.Services
     {
         Task <int>CreateAsync(CreateProjectDto dto);
 
-        Task<Project> GetByIdAsync(int id);
+        Task<ProjectDto> GetByIdAsync(int id);
 
-        Task<IEnumerable<Project>>  GetAllAsync();
+        //Task<IEnumerable<Project>>  GetAllAsync();
 
         Task<ApiResponse<PaginatedResult<ProjectDto>>> GetAllAsync(int page, int pageSize, string? search,  ProjectStatus? status);
 

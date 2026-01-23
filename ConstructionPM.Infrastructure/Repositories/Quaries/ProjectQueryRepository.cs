@@ -29,6 +29,7 @@ namespace ConstructionPM.Infrastructure.Repositories.Quaries
 
         public async Task<List<Project>> GetAllAsync()
         {
+            //throw new System.Exception();
             var sql = @"SELECT * FROM Projects 
                 WHERE IsDeleted = 0 
                 ORDER BY CreatedAt DESC";

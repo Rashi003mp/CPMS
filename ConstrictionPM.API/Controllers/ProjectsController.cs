@@ -24,7 +24,12 @@ namespace ConstructionPM.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateProjectDto dto)
+        public async Task<IActionResult>
+            Create
+            (
+            CreateProjectDto dto
+            )
+
         {
             var projectId = await _projectService.CreateAsync(dto);
             var response = ApiResponse.SuccessResponse("Project created successfully");
@@ -33,13 +38,18 @@ namespace ConstructionPM.API.Controllers
         }
 
         [HttpPost("{projectId}/assign-user")]
-        public async Task<IActionResult> AssignUserToProject(int projectId, AssignProjectUserDto dto)
+        public async Task<IActionResult>
+            AssignUserToProject
+            (
+            int projectId, AssignProjectUserDto dto
+            )
+
         {
             var result = await _projectUserService.AssignUserToProjectAsync(projectId, dto);
             if (!result.Success)
             {
                 return BadRequest(result);
-               
+
             }
             else
             {
@@ -50,14 +60,32 @@ namespace ConstructionPM.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<PaginatedResult<ProjectDto>>>> GetAllProjects(
-     [FromQuery] int page = 1,
-     [FromQuery] int pageSize = 10,
-     [FromQuery] string? search = null,
-     [FromQuery] ProjectStatus? status =null )
+        public async Task<ActionResult<ApiResponse<PaginatedResult<ProjectDto>>>>
+            GetAllProjects
+            (
+             [FromQuery] int page = 1,
+             [FromQuery] int pageSize = 10,
+             [FromQuery] string? search = null,
+             [FromQuery] ProjectStatus? status = null
+            )
         {
             var result = await _projectService.GetAllAsync(page, pageSize, search, status);
             return Ok(result);
+        }
+
+        [HttpGet]
+        [Route("{id}")]
+        public async Task<ActionResult<ApiResponse<ProjectDto>>> GetProjectById(int id)
+        {
+            var project = await _projectService.GetByIdAsync(id);
+            if (project == null)
+            {
+                return NotFound(ApiResponse<ProjectDto>.ErrorResponse("Project not found"));
+            }
+            return Ok(ApiResponse<ProjectDto>.SuccessResponse(project));
+
+
+
         }
 
     }
