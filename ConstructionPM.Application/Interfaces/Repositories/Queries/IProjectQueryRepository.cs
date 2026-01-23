@@ -10,7 +10,9 @@ namespace ConstructionPM.Application.Interfaces.Repositories.Queries
 {
     public interface IProjectQueryRepository
     {
-        Task<IEnumerable<Project>> GetAllAsync();
+        //Task<IEnumerable<Project>> GetAllAsync();
         Task<Project?> GetByIdAsync(int id);
+
+        Task<List<Project>> GetAllAsync();
     }
 }

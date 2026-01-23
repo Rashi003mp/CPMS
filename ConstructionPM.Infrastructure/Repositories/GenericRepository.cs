@@ -16,6 +16,7 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
 
     public async Task AddAsync(T entity)
     {
+        //throw new Exception("DB failure");
         await _dbSet.AddAsync(entity);
         await _context.SaveChangesAsync();
     }

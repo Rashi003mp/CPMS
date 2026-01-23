@@ -48,8 +48,8 @@ namespace ConstructionPM.API.Extensions
             services.AddScoped<IRegistrationCommandRepository, RegistrationCommandRepository>();
             services.AddScoped<IRegistrationQueryRepository, RegistrationQueryRepository>();
             services.AddScoped<IProjectCommandRepository, ProjectCommandRepository>();
+            services.AddScoped<IProjectQueryRepository, ProjectQueryRepository>();
             services.AddScoped<IProjectStatusHistoryCommandRepository,ProjectStatusHistoryCommandRepository >();
-            //services.AddScoped<IProjectQueryRepository, ProjectQueryRepository>();
             services.AddScoped<IAuthService, AuthService>();
 
             // validators

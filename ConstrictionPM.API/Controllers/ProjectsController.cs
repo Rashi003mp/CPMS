@@ -1,8 +1,10 @@
 ﻿using ConstructionPM.Application.DTOs;
 using ConstructionPM.Application.DTOs.Projects.CreateProject;
+using ConstructionPM.Application.DTOs.Projects.GetProjects;
 using ConstructionPM.Application.DTOs.Projects.ProjectUsers;
 using ConstructionPM.Application.DTOs.Response;
 using ConstructionPM.Application.Interfaces.Services;
+using ConstructionPM.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -46,5 +48,17 @@ namespace ConstructionPM.API.Controllers
 
 
         }
+
+        [HttpGet]
+        public async Task<ActionResult<ApiResponse<PaginatedResult<ProjectDto>>>> GetAllProjects(
+     [FromQuery] int page = 1,
+     [FromQuery] int pageSize = 10,
+     [FromQuery] string? search = null,
+     [FromQuery] ProjectStatus? status =null )
+        {
+            var result = await _projectService.GetAllAsync(page, pageSize, search, status);
+            return Ok(result);
+        }
+
     }
 }

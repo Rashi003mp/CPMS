@@ -30,8 +30,8 @@ namespace ConstructionPM.Application.Services
         {
 
             _validator.ValidateRegistrationRequest(request);
+
             var emailExists = await _userCommand.ExistsByEmailAsync(request.Email);
-            Console.WriteLine(emailExists);
             if (emailExists)
             {
                 throw new InvalidOperationException("Email already exists");
@@ -39,7 +39,16 @@ namespace ConstructionPM.Application.Services
          
 
             var entity = MapToEntity(request);
-            await _genericRepository.AddAsync(entity);
+
+            try 
+            { 
+                await _genericRepository.AddAsync(entity); 
+            }
+            catch (System.Exception ex)
+            {
+                throw new ApplicationException("An error occurred while processing the registration request.", ex);
+            }
+
         }
 
         private static RegistrationRequest MapToEntity(RegistrationRequestDto r)

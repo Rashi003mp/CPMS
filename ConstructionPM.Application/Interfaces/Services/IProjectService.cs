@@ -1,5 +1,8 @@
 ﻿using ConstructionPM.Application.DTOs.Projects.CreateProject;
+using ConstructionPM.Application.DTOs.Projects.GetProjects;
+using ConstructionPM.Application.DTOs.Response;
 using ConstructionPM.Domain.Entities;
+using ConstructionPM.Domain.Enums;
 
 namespace ConstructionPM.Application.Interfaces.Services
 {
@@ -10,6 +13,8 @@ namespace ConstructionPM.Application.Interfaces.Services
         Task<Project> GetByIdAsync(int id);
 
         Task<IEnumerable<Project>>  GetAllAsync();
+
+        Task<ApiResponse<PaginatedResult<ProjectDto>>> GetAllAsync(int page, int pageSize, string? search,  ProjectStatus? status);
 
 
 
