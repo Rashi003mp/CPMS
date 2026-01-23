@@ -34,7 +34,9 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
 
     public async Task<T?> GetByIdAsync(int id)
     {
-        return await _dbSet.FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id);
+        //return await _dbSet.FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id && EF.Property<int> (e,"IsDeleted") == 0 );
+
+        return await _dbSet.FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id && EF.Property<bool>(e, "IsDeleted") == false);
     }
 
     public async Task UpdateAsync(T entity)

@@ -41,15 +41,15 @@ namespace ConstructionPM.Application.Validators.Implimentations
         {
             switch (request.RoleName)
             {
-                case RegistrationRole.ProjectManager:
+                case Role.ProjectManager:
                     ValidateProjectManager(request);
                     break;
 
-                case RegistrationRole.SiteEngineer:
+                case Role.SiteEngineer:
                     ValidateSiteEngineer(request);
                     break;
 
-                case RegistrationRole.Client:
+                case Role.Client:
                     ValidateClient(request);
                     break;
 

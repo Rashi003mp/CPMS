@@ -12,7 +12,7 @@ namespace ConstructionPM.Application.DTOs
         public int Id { get; set; }
         public string Name { get; set; } = null!;
         public string Email { get; set; } = null!;
-        public RegistrationRole RoleId { get; set; }
+        public Role RoleId { get; set; }
         public string PasswordHash { get; set; } = null!;
     }
 }

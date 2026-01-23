@@ -1,7 +1,7 @@
 ﻿
 namespace ConstructionPM.Domain.Enums
 {
-    public enum RegistrationRole
+    public enum Role
     {
         ProjectManager = 1,
         SiteEngineer = 2,

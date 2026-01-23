@@ -1,4 +1,4 @@
-﻿using ConstructionPM.Application.DTOs.Projects;
+﻿using ConstructionPM.Application.DTOs.Projects.CreateProject;
 using ConstructionPM.Domain.Entities;
 
 namespace ConstructionPM.Application.Interfaces.Services

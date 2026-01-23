@@ -1,7 +1,7 @@
 ﻿using ConstructionPM.Domain.Enums;
 using System.ComponentModel.DataAnnotations;
 
-namespace ConstructionPM.Application.DTOs.Projects
+namespace ConstructionPM.Application.DTOs.Projects.CreateProject
 {
     public class CreateProjectDto
 

@@ -42,6 +42,7 @@ namespace ConstructionPM.API.Extensions
             services.AddScoped<IDbConnection>(sp => new SqlConnection(connectionString));
 
             // ---------- Repositories ----------
+            services.AddScoped<IProjectAssignmentQueryRepository, ProjectAssignmentQueryRepository>();
             services.AddScoped<IUserCommandRepository, UserCommandRepository>();
             services.AddScoped<IUserQueryRepository, UserQueryRepository>();
             services.AddScoped<IRegistrationCommandRepository, RegistrationCommandRepository>();
@@ -70,6 +71,7 @@ namespace ConstructionPM.API.Extensions
             services.AddScoped<IPasswordRecoveryService, PasswordRecoveryService>();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.AddScoped<IProjectService, ProjectService>();
+            services.AddScoped<IProjectUsersService, ProjectUsersService>();
 
             // ---------- Security ----------
             services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();

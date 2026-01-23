@@ -17,7 +17,7 @@ namespace ConstructionPM.Application.DTOs
         public string PhoneNumber { get; set; } = null!;
 
         [Required]
-        public RegistrationRole RoleName { get; set; }
+        public Role RoleName { get; set; }
         // PM
         public int? ExperienceYears { get; set; }
 

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ConstructionPM.Application.DTOs.Projects
+namespace ConstructionPM.Application.DTOs.Projects.CreateProject
 {
     public class ProjectListDto
     {

@@ -12,7 +12,7 @@ namespace ConstructionPM.Domain.Entities
 
         public string PasswordHash { get; set; } = null!;
 
-        public RegistrationRole RoleId { get; set; }
+        public Role RoleId { get; set; }
 
         public string? ResetToken { get; set; }
         public DateTime? ResetTokenExpiry { get; set; }

@@ -1,5 +1,5 @@
 ﻿using ConstructionPM.Application.DTOs;
-using ConstructionPM.Application.DTOs.Projects;
+using ConstructionPM.Application.DTOs.Projects.CreateProject;
 using ConstructionPM.Application.Interfaces;
 using ConstructionPM.Application.Interfaces.Repositories.Commands;
 using ConstructionPM.Application.Interfaces.Services;
