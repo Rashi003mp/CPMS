@@ -1,4 +1,5 @@
 ﻿using ConstructionPM.Application.DTOs;
+using ConstructionPM.Application.DTOs.Projects;
 using ConstructionPM.Application.DTOs.Projects.CreateProject;
 using ConstructionPM.Application.DTOs.Projects.GetProjects;
 using ConstructionPM.Application.DTOs.Projects.ProjectUsers;
@@ -88,5 +89,16 @@ namespace ConstructionPM.API.Controllers
 
         }
 
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateProject(int id, UpdateProjectDto dto)
+        {
+            var result = await _projectService.UpdateProjectAsync(id, dto);
+
+            if (!result.Success)
+                return NotFound(result);
+
+            return Ok(result);
+        }
     }
 }

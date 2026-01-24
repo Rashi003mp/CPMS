@@ -1,4 +1,5 @@
 ﻿using ConstructionPM.Application.DTOs;
+using ConstructionPM.Application.DTOs.Projects;
 using ConstructionPM.Application.DTOs.Projects.CreateProject;
 using ConstructionPM.Application.DTOs.Projects.GetProjects;
 using ConstructionPM.Application.DTOs.Response;
@@ -164,6 +165,57 @@ namespace ConstructionPM.Application.Services
 
         }
 
+        public async Task<ApiResponse<object>> UpdateProjectAsync(
+        int projectId,
+        UpdateProjectDto dto
+        )
+        {
+            await _unitOfWork.BeginTransactionAsync();
 
+            try
+            {
+                var project = await _genericRepository.GetByIdAsync(projectId);
+                if (project == null)
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse<object>.ErrorResponse("Project not found");
+                }
+
+                var oldStatus = (ProjectStatus)project.Status;
+                var newStaus = dto.Status;
+
+                project.ProjectName = dto.ProjectName;
+                project.Description = dto.Description;
+                project.StartDate = dto.StartDate;
+                project.EndDate = dto.EndDate;
+                project.Status = newStaus;
+
+                await _genericRepository.UpdateAsync(project);
+
+                if (oldStatus != newStaus)
+                {
+                    var history = new ProjectStatusHistory
+                    {
+                        ProjectId = project.Id,
+                        Status = newStaus,
+                        Remarks = dto.Remarks,
+                    };
+                    await _historyRepository.AddAsync(history);
+                }
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+
+                return ApiResponse<object>.SuccessResponse("Project updated successfully");
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                return ApiResponse<object>.ErrorResponse("Unable to update project");
+
+            }
+
+        }
+
+        }
     }
-}
+

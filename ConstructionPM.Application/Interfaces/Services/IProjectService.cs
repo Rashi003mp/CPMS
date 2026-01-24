@@ -1,4 +1,5 @@
-﻿using ConstructionPM.Application.DTOs.Projects.CreateProject;
+﻿using ConstructionPM.Application.DTOs.Projects;
+using ConstructionPM.Application.DTOs.Projects.CreateProject;
 using ConstructionPM.Application.DTOs.Projects.GetProjects;
 using ConstructionPM.Application.DTOs.Response;
 using ConstructionPM.Domain.Entities;
@@ -8,13 +9,24 @@ namespace ConstructionPM.Application.Interfaces.Services
 {
     public interface IProjectService
     {
-        Task <int>CreateAsync(CreateProjectDto dto);
+        Task<int> CreateAsync(CreateProjectDto dto);
 
         Task<ProjectDto> GetByIdAsync(int id);
 
         //Task<IEnumerable<Project>>  GetAllAsync();
 
-        Task<ApiResponse<PaginatedResult<ProjectDto>>> GetAllAsync(int page, int pageSize, string? search,  ProjectStatus? status);
+        Task<ApiResponse<PaginatedResult<ProjectDto>>> GetAllAsync(
+            int page,
+            int pageSize,
+            string? search,
+            ProjectStatus? status);
+
+        Task<ApiResponse<object>> UpdateProjectAsync(
+            int projectId,
+            UpdateProjectDto dto
+            );
+
+
 
 
 
