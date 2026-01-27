@@ -81,9 +81,9 @@ namespace ConstructionPM.API.Controllers
             var project = await _projectService.GetByIdAsync(id);
             if (project == null)
             {
-                return NotFound(ApiResponse<ProjectDto>.ErrorResponse("Project not found"));
+                return NotFound(project);
             }
-            return Ok(ApiResponse<ProjectDto>.SuccessResponse(project));
+            return Ok(project);
 
 
 
@@ -91,7 +91,7 @@ namespace ConstructionPM.API.Controllers
 
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProject(int id, UpdateProjectDto dto)
+        public async Task<IActionResult> UpdateProject(int id,[FromForm] UpdateProjectDto dto)
         {
             var result = await _projectService.UpdateProjectAsync(id, dto);
 

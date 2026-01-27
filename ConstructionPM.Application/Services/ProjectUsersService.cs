@@ -72,7 +72,7 @@ namespace ConstructionPM.Application.Services
                 AssignedUserId = dto.AssignedUserId,
                 AssignedUserName = dto.AssignedUserName,
                 RoleId = dto.Role,
-                Action = ProjectRoleActions.Assaigned.ToString(),
+                Action = ProjectRoleActions.Assigned.ToString(),
 
             };
 

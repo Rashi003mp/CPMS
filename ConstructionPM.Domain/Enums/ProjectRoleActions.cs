@@ -8,8 +8,10 @@ namespace ConstructionPM.Domain.Enums
 {
     public enum  ProjectRoleActions
     {
-        Assaigned=1,
+        Assigned = 1,
         Removed= 2
 
     }
 }
+
+

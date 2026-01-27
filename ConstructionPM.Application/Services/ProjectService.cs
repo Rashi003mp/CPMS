@@ -84,7 +84,7 @@ namespace ConstructionPM.Application.Services
             }
         }
 
-        public async Task<ApiResponse<object>> DeleteProjectAsync(int projectId,string Reason)
+        public async Task<ApiResponse<object>> DeleteProjectAsync(int projectId, string Reason)
         {
             await _unitOfWork.BeginTransactionAsync();
 
@@ -101,13 +101,13 @@ namespace ConstructionPM.Application.Services
 
                 Console.WriteLine("Project Users Count: " + projectUsers);
                 if (projectUsers == null)
-                    {
+                {
                     await _unitOfWork.RollbackAsync();
                     return ApiResponse<object>.ErrorResponse("No users associated with the project");
                 }
 
                 var associatedUsers = projectUsers.Where(
-                    pu => 
+                    pu =>
                     pu.ProjectId == projectId)
                     .ToList();
 
@@ -128,7 +128,7 @@ namespace ConstructionPM.Application.Services
                     Status = ProjectStatus.Deleted,
                     Remarks = Reason,
                 };
-                 await _historyRepository.AddAsync(history);
+                await _historyRepository.AddAsync(history);
 
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
@@ -202,18 +202,19 @@ namespace ConstructionPM.Application.Services
         }
 
 
-        public async Task<ProjectDto> GetByIdAsync(int id)
+        public async Task<ApiResponse<ProjectDto>> GetByIdAsync(int id)
         {
             if (id <= 0)
-                throw new ArgumentException("Invalid project ID", nameof(id));
+                return ApiResponse<ProjectDto>.ErrorResponse("Invalid project ID");
 
-            var project = await _genericRepository.GetByIdAsync(id);
+            try
+            {
+                var project = await _genericRepository.GetByIdAsync(id);
 
-            if (project == null)
-                throw new KeyNotFoundException($"Project with ID {id} not found");
+                if (project == null)
+                    return ApiResponse<ProjectDto>.ErrorResponse($"Project with ID {id} not found");
 
-            return 
-                new ProjectDto
+                return ApiResponse<ProjectDto>.SuccessResponse(new ProjectDto
                 {
                     Id = project.Id,
                     Name = project.ProjectName,
@@ -221,9 +222,14 @@ namespace ConstructionPM.Application.Services
                     Status = project.Status.ToString(),
                     CreatedAt = project.CreatedAt,
                     CreatedByUserName = project.CreatedByUserName
-                };
-
+                });
+            }
+            catch (System.Exception)
+            {
+                return ApiResponse<ProjectDto>.ErrorResponse("An error occurred while retrieving the project");
+            }
         }
+
 
         public async Task<ApiResponse<object>> UpdateProjectAsync(
         int projectId,
@@ -239,6 +245,13 @@ namespace ConstructionPM.Application.Services
                 {
                     await _unitOfWork.RollbackAsync();
                     return ApiResponse<object>.ErrorResponse("Project not found");
+                }
+                if (!IsValidStatusTransition(project.Status, dto.Status))
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse<object>.ErrorResponse(
+                        $"Invalid status transition from '{project.Status}' to '{dto.Status}'. " +
+                        $"Status cannot revert from advanced states.");
                 }
 
                 var oldStatus = (ProjectStatus)project.Status;
@@ -273,9 +286,23 @@ namespace ConstructionPM.Application.Services
                 return ApiResponse<object>.ErrorResponse("Unable to update project");
 
             }
+        }
+        private bool IsValidStatusTransition(ProjectStatus currentStatus, ProjectStatus newStatus)
+        {
 
+
+            return currentStatus switch
+            {
+                ProjectStatus.Planned => true,
+                ProjectStatus.Active when newStatus == ProjectStatus.OnHold => true,
+                ProjectStatus.Active when newStatus == ProjectStatus.Completed => true,
+                ProjectStatus.Completed => false,
+                ProjectStatus.Deleted => false,
+                _ => false
+            };
         }
 
-        }
     }
+
+}
 
