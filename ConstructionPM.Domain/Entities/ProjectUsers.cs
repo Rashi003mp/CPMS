@@ -10,5 +10,9 @@ namespace ConstructionPM.Domain.Entities
         public int AssignedUserId { get; set; }
 
         public string? AssignedUserName { get; set; }
+
+        public ProjectRoleActions Action { get; set; }
+
+        public string? Reason { get; set; }
     }
 }

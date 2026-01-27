@@ -72,6 +72,8 @@ namespace ConstructionPM.Application.Services
                 AssignedUserId = dto.AssignedUserId,
                 AssignedUserName = dto.AssignedUserName,
                 RoleId = dto.Role,
+                Action = ProjectRoleActions.Assaigned,
+
             };
 
             await _projectUsersRepository.AddAsync(assignment);
