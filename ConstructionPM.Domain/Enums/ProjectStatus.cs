@@ -11,6 +11,7 @@ namespace ConstructionPM.Domain.Enums
         Planned =1,
         Active =2,
         OnHold =3,
-        Completed =4
+        Completed =4,
+        Deleted =5,
     }
 }

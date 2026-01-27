@@ -100,5 +100,16 @@ namespace ConstructionPM.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteProject(int id, string Reason)
+        {
+            var result = await _projectService.DeleteProjectAsync(id,Reason);
+
+            if (!result.Success)
+                return NotFound(result);
+
+            return Ok(result);
+        }
     }
 }

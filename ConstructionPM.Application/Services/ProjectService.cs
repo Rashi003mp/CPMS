@@ -24,6 +24,8 @@ namespace ConstructionPM.Application.Services
         private readonly IProjectStatusHistoryCommandRepository _historyRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IGenericRepository<Project> _genericRepository;
+        private readonly IGenericRepository<ProjectUsers> _ProjectUsersRepository;
+
 
         public ProjectService(
             IProjectCommandRepository projectRepository,
@@ -31,7 +33,8 @@ namespace ConstructionPM.Application.Services
             IUnitOfWork unitOfWork,
             IProjectQueryRepository ProjectQueryRepository,
             IGenericRepository<Project> GenericRepository,
-            ILogger<ProjectService> logger
+            ILogger<ProjectService> logger,
+            IGenericRepository<ProjectUsers> ProjectUsersRepository
             )
         {
             _projectRepository = projectRepository;
@@ -40,6 +43,7 @@ namespace ConstructionPM.Application.Services
             _ProjectQueryRepository = ProjectQueryRepository;
             _genericRepository = GenericRepository;
             _logger = logger;
+            _ProjectUsersRepository = ProjectUsersRepository;
         }
 
         public async Task<int> CreateAsync(CreateProjectDto dto)
@@ -80,7 +84,63 @@ namespace ConstructionPM.Application.Services
             }
         }
 
-        
+        public async Task<ApiResponse<object>> DeleteProjectAsync(int projectId,string Reason)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                var project = await _genericRepository.GetByIdAsync(projectId);
+                if (project == null)
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse<object>.ErrorResponse("Project not found");
+                }
+
+                var projectUsers = await _ProjectUsersRepository.GetAllAsync();
+
+                Console.WriteLine("Project Users Count: " + projectUsers);
+                if (projectUsers == null)
+                    {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse<object>.ErrorResponse("No users associated with the project");
+                }
+
+                var associatedUsers = projectUsers.Where(
+                    pu => 
+                    pu.ProjectId == projectId)
+                    .ToList();
+
+                foreach (var users in associatedUsers)
+                {
+                    users.Action = ProjectRoleActions.Removed.ToString();
+                    users.Reason = Reason;
+
+                }
+
+                project.Status = ProjectStatus.Deleted;
+
+                await _genericRepository.DeleteAsync(project);
+
+                var history = new ProjectStatusHistory
+                {
+                    ProjectId = project.Id,
+                    Status = ProjectStatus.Deleted,
+                    Remarks = Reason,
+                };
+                 await _historyRepository.AddAsync(history);
+
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+                return ApiResponse<object>.SuccessResponse("Project deleted successfully");
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                return ApiResponse<object>.ErrorResponse("Unable to delete project");
+            }
+
+        }
 
         public async Task<ApiResponse<PaginatedResult<ProjectDto>>> GetAllAsync
             (

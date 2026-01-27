@@ -26,6 +26,8 @@ namespace ConstructionPM.Application.Interfaces.Services
             UpdateProjectDto dto
             );
 
+        Task<ApiResponse<object>> DeleteProjectAsync(int projectId, string Reason);
+
 
 
 
