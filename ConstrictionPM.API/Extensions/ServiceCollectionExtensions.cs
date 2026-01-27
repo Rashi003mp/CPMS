@@ -14,6 +14,7 @@ using ConstructionPM.Infrastructure.Dapper;
 using ConstructionPM.Infrastructure.Persistence;
 using ConstructionPM.Infrastructure.Repositories.Commands;
 using ConstructionPM.Infrastructure.Repositories.Quaries;
+using ConstructionPM.Infrastructure.Repositories.Queries;
 using ConstructionPM.Infrastructure.UoW;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
@@ -53,6 +54,7 @@ namespace ConstructionPM.API.Extensions
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserCountQuery,UserCountQuery>();
 
+
             // validators
             services.AddScoped<ICommonValidator, CommonValidator>();
             services.AddScoped<IRegistrationValidator, RegistrationValidator>();
@@ -74,7 +76,7 @@ namespace ConstructionPM.API.Extensions
             services.AddScoped<IProjectService, ProjectService>();
             services.AddScoped<IProjectUsersService, ProjectUsersService>();
             services.AddScoped<IUserService, UserService>();
-
+            services.AddScoped<IUserProjectQuery, UserProjectQuery>();
 
             // ---------- Security ----------
             services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();

@@ -11,5 +11,6 @@ namespace ConstructionPM.Application.Interfaces.Services
     public interface IUserService
     {
         Task<ApiResponse<List<UserListDto>>> GetAllUsersAsync();
+        Task<ApiResponse<UserDetailDto>> GetUserByIdAsync(int userId);
     }
 }

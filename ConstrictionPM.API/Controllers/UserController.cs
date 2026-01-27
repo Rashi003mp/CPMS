@@ -21,5 +21,16 @@ namespace ConstructionPM.API.Controllers
             var users = await _userService.GetAllUsersAsync();
             return Ok(users);
         }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUserById(int id)
+        {
+            var response = await _userService.GetUserByIdAsync(id);
+
+            if (!response.Success)
+                return NotFound(response);
+
+            return Ok(response);
+        }
     }
 }
