@@ -51,6 +51,7 @@ namespace ConstructionPM.API.Extensions
             services.AddScoped<IProjectQueryRepository, ProjectQueryRepository>();
             services.AddScoped<IProjectStatusHistoryCommandRepository,ProjectStatusHistoryCommandRepository >();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IUserCountQuery,UserCountQuery>();
 
             // validators
             services.AddScoped<ICommonValidator, CommonValidator>();
@@ -72,6 +73,8 @@ namespace ConstructionPM.API.Extensions
             services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.AddScoped<IProjectService, ProjectService>();
             services.AddScoped<IProjectUsersService, ProjectUsersService>();
+            services.AddScoped<IUserService, UserService>();
+
 
             // ---------- Security ----------
             services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();

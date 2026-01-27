@@ -1,4 +1,5 @@
 ﻿using ConstructionPM.Application.DTOs;
+using ConstructionPM.Application.DTOs.Users;
 using ConstructionPM.Application.Interfaces.Repositories.Queries;
 using ConstructionPM.Domain.Entities;
 using ConstructionPM.Domain.Enums;
@@ -112,6 +113,7 @@ namespace ConstructionPM.Infrastructure.Repositories.Quaries
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
         }
+
 
     }
 }
