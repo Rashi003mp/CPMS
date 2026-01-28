@@ -1,8 +1,10 @@
-﻿using ConstructionPM.Application.DTOs.Projects.ProjectUsers;
+﻿using ConstructionPM.Application.DTOs.AssignUser;
+using ConstructionPM.Application.DTOs.Projects.ProjectUsers;
 using ConstructionPM.Application.DTOs.Response;
 using ConstructionPM.Application.Interfaces.Repositories.Commands;
 using ConstructionPM.Application.Interfaces.Repositories.Queries;
 using ConstructionPM.Application.Interfaces.Services;
+using ConstructionPM.Application.Interfaces.UoW;
 using ConstructionPM.Domain.Entities;
 using ConstructionPM.Domain.Enums;
 
@@ -15,23 +17,29 @@ namespace ConstructionPM.Application.Services
         private readonly IGenericRepository<User> _userRepository;
         private readonly IGenericRepository<ProjectUsers> _projectUsersRepository;
         private readonly IProjectAssignmentQueryRepository _projectAssignmentRepository;
+        private readonly IUnitOfWork _unitOfWork;
+
         private const int MaxProjectsPerUser = 5;
+
+
 
         public ProjectUsersService(
             IGenericRepository<Project> projectRepository,
             IGenericRepository<User> userRepository,
+            IGenericRepository<ProjectUsers> projectUsersRepository,
             IProjectAssignmentQueryRepository projectAssignmentRepository,
-            IGenericRepository<ProjectUsers> projectUsersRepository)
+            IUnitOfWork unitOfWork)
         {
             _projectRepository = projectRepository;
             _userRepository = userRepository;
-            _projectAssignmentRepository = projectAssignmentRepository;
             _projectUsersRepository = projectUsersRepository;
+            _projectAssignmentRepository = projectAssignmentRepository;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<ApiResponse<object>> AssignUserToProjectAsync(int projectId, AssignProjectUserDto dto)
-        { 
-            var project =await _projectRepository.GetByIdAsync(projectId);
+        {
+            var project = await _projectRepository.GetByIdAsync(projectId);
             if (project == null || project.IsDeleted)
             {
                 return ApiResponse<object>.ErrorResponse("Project not found");
@@ -84,6 +92,49 @@ namespace ConstructionPM.Application.Services
 
 
 
+        }
+
+        public async Task<ApiResponse> UnassignUserAsync(UnassignUserDto dto)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                var project = await _projectRepository.GetByIdAsync(dto.ProjectId);
+                if (project == null )
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse.ErrorResponse("Project not found");
+                }
+
+                var assignments = await _projectUsersRepository.GetAllAsync();
+
+                var assignment = assignments.FirstOrDefault(pu =>
+                    pu.ProjectId == dto.ProjectId &&
+                    pu.AssignedUserId == dto.UserId &&
+                    (int)pu.RoleId == dto.RoleId &&
+                    !pu.IsDeleted
+                );
+
+                if (assignment == null)
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse.ErrorResponse("User assignment not found");
+                }
+
+                assignment.Action = ProjectRoleActions.Unassigned.ToString();
+                assignment.Reason = dto.Reason;
+
+                await _projectUsersRepository.DeleteAsync(assignment);
+
+                await _unitOfWork.CommitAsync();
+                return ApiResponse.SuccessResponse("User unassigned successfully");
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                return ApiResponse.ErrorResponse("Unable to unassign user");
+            }
         }
     }
 }

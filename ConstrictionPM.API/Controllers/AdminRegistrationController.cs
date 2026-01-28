@@ -10,7 +10,7 @@ namespace ConstrictionPM.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles="Admin")]
+    [Authorize(Roles= "Admin,ProjectManager")]
     public class RegistrationController : ControllerBase
     {
         private readonly IRegistrationQueryRepository _query;

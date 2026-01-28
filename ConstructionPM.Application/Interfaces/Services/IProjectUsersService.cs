@@ -1,4 +1,5 @@
-﻿using ConstructionPM.Application.DTOs.Projects.ProjectUsers;
+﻿using ConstructionPM.Application.DTOs.AssignUser;
+using ConstructionPM.Application.DTOs.Projects.ProjectUsers;
 using ConstructionPM.Application.DTOs.Response;
 using System;
 using System.Collections.Generic;
@@ -11,5 +12,8 @@ namespace ConstructionPM.Application.Interfaces.Services
     public interface IProjectUsersService
     {
         Task<ApiResponse<object>> AssignUserToProjectAsync(int projectId, AssignProjectUserDto dto);
+
+        Task<ApiResponse> UnassignUserAsync(UnassignUserDto dto);
+
     }
 }

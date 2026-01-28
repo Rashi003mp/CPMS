@@ -6,6 +6,7 @@ using ConstructionPM.Application.DTOs.Projects.ProjectUsers;
 using ConstructionPM.Application.DTOs.Response;
 using ConstructionPM.Application.Interfaces.Services;
 using ConstructionPM.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -13,18 +14,18 @@ namespace ConstructionPM.API.Controllers
 {
     [ApiController]
     [Route("api/projects")]
+    [Authorize(Roles = "Admin,ProjectManager")]
     public class ProjectsController : ControllerBase
     {
         private readonly IProjectService _projectService;
-        private readonly IProjectUsersService _projectUserService;
 
         public ProjectsController(IProjectService projectService, IProjectUsersService projectUserService)
         {
             _projectService = projectService;
-            _projectUserService = projectUserService;
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,ProjectManager")]
         public async Task<IActionResult>
             Create
             (
@@ -38,29 +39,8 @@ namespace ConstructionPM.API.Controllers
             ;
         }
 
-        [HttpPost("{projectId}/assign-user")]
-        public async Task<IActionResult>
-            AssignUserToProject
-            (
-            int projectId, AssignProjectUserDto dto
-            )
-
-        {
-            var result = await _projectUserService.AssignUserToProjectAsync(projectId, dto);
-            if (!result.Success)
-            {
-                return BadRequest(result);
-
-            }
-            else
-            {
-                return Ok(result);
-            }
-
-
-        }
-
         [HttpGet]
+        [Authorize(Roles = "Admin,ProjectManager")]
         public async Task<ActionResult<ApiResponse<PaginatedResult<ProjectDto>>>>
             GetAllProjects
             (
@@ -75,6 +55,7 @@ namespace ConstructionPM.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,ProjectManager")]
         [Route("{id}")]
         public async Task<ActionResult<ApiResponse<ProjectDto>>> GetProjectById(int id)
         {
@@ -84,14 +65,11 @@ namespace ConstructionPM.API.Controllers
                 return NotFound(project);
             }
             return Ok(project);
-
-
-
         }
 
-
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProject(int id,[FromForm] UpdateProjectDto dto)
+        [Authorize(Roles = "Admin,ProjectManager")]
+        public async Task<IActionResult> UpdateProject(int id, [FromForm] UpdateProjectDto dto)
         {
             var result = await _projectService.UpdateProjectAsync(id, dto);
 
@@ -102,9 +80,10 @@ namespace ConstructionPM.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin,ProjectManager")]
         public async Task<IActionResult> DeleteProject(int id, string Reason)
         {
-            var result = await _projectService.DeleteProjectAsync(id,Reason);
+            var result = await _projectService.DeleteProjectAsync(id, Reason);
 
             if (!result.Success)
                 return NotFound(result);

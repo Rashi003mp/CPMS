@@ -6,13 +6,10 @@ using System.Threading.Tasks;
 
 namespace ConstructionPM.Domain.Enums
 {
-    public enum  ProjectRoleActions
-    {
-        Assigned = 1,
-        Removed= 2,
-        Unassigned=3
-
+    public enum  SystemRoles
+    {   Admin = 0,
+        ProjectManager = 1,
+        SiteEngineer = 2,
+        Client = 3
     }
 }
-
-

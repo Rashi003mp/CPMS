@@ -40,9 +40,18 @@ public class AuthService : IAuthService
         if (!result)
             throw new UnauthorizedAccessException("Invalid credentials");
 
+        string roleName = (int)user.RoleId switch
+        {
+            0 => "Admin",
+            1 => "ProjectManager",           
+            2 => "SiteEngineer",   
+            3 => "Client",
+            _ => "User"          
+        };
+
         return _jwt.GenerateToken(
             user.Id,
-            user.RoleId.ToString(),
+            roleName,
             user.Name
         );
     }
