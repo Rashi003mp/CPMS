@@ -59,7 +59,7 @@ builder.Services.AddHttpContextAccessor();
 var app = builder.Build();
 
 //
-//app.UseMiddleware<ExceptionHandlerMiddleware>();
+app.UseMiddleware<ExceptionHandlerMiddleware>();
 
 // ---------- Middleware ----------
 if (app.Environment.IsDevelopment())

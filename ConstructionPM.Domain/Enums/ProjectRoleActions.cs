@@ -10,7 +10,8 @@ namespace ConstructionPM.Domain.Enums
     {
         Assigned = 1,
         Removed= 2,
-        Unassigned=3
+        Unassigned=3,
+        Replaced= 4
 
     }
 }

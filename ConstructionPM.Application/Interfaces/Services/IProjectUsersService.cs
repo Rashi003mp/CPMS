@@ -15,5 +15,6 @@ namespace ConstructionPM.Application.Interfaces.Services
 
         Task<ApiResponse> UnassignUserAsync(UnassignUserDto dto);
 
+        Task<ApiResponse> ReplaceUserAsync(ReplaceUserDto dto);
     }
 }

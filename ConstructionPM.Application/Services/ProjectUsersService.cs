@@ -136,5 +136,80 @@ namespace ConstructionPM.Application.Services
                 return ApiResponse.ErrorResponse("Unable to unassign user");
             }
         }
+
+        public async Task<ApiResponse> ReplaceUserAsync(ReplaceUserDto dto)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                var project = await _projectRepository.GetByIdAsync(dto.ProjectId);
+                if (project == null )
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse.ErrorResponse("Project not found");
+                }
+
+                var newUser = await _userRepository.GetByIdAsync(dto.NewUserId);
+                if (newUser == null )
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse.ErrorResponse("New user not found");
+                }
+
+                var assignments = await _projectUsersRepository.GetAllAsync();
+
+                var oldAssignment = assignments.FirstOrDefault(pu =>
+                    pu.ProjectId == dto.ProjectId &&
+                    pu.AssignedUserId == dto.OldUserId &&
+                    (int)pu.RoleId == dto.RoleId &&
+                    !pu.IsDeleted
+                );
+
+                if (oldAssignment == null)
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse.ErrorResponse("Old user assignment not found");
+                }
+
+                var duplicate = assignments.Any(pu =>
+                    pu.ProjectId == dto.ProjectId &&
+                    pu.AssignedUserId == dto.NewUserId &&
+                    (int)pu.RoleId == dto.RoleId &&
+                    !pu.IsDeleted
+                );
+
+                if (duplicate)
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse.ErrorResponse("New user already assigned to this role");
+                }
+
+                oldAssignment.Action = ProjectRoleActions.Replaced.ToString();
+                oldAssignment.Reason = dto.Reason;
+
+                await _projectUsersRepository.DeleteAsync(oldAssignment);
+
+                var newAssignment = new ProjectUsers
+                {
+                    ProjectId = dto.ProjectId,
+                    AssignedUserId = dto.NewUserId,
+                    AssignedUserName = newUser.Name,
+                    RoleId = (Role)dto.RoleId,
+                    Action = ProjectRoleActions.Assigned.ToString(),
+                    Reason = "Replacement"
+                };
+
+                await _projectUsersRepository.AddAsync(newAssignment);
+
+                await _unitOfWork.CommitAsync();
+                return ApiResponse.SuccessResponse("User replaced successfully");
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                return ApiResponse.ErrorResponse("Unable to replace user");
+            }
+        }
     }
 }

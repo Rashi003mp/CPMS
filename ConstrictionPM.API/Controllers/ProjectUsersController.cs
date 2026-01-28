@@ -53,6 +53,18 @@ namespace ConstructionPM.API.Controllers
 
             return Ok(response);
         }
+
+        [HttpPost("replace-user")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ReplaceUser(ReplaceUserDto dto)
+        {
+            var response = await _projectUserService.ReplaceUserAsync(dto);
+
+            if (!response.Success)
+                return BadRequest(response);
+
+            return Ok(response);
+        }
     }
 }
 

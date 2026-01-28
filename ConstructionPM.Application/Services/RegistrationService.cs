@@ -32,7 +32,8 @@ namespace ConstructionPM.Application.Services
             _validator.ValidateRegistrationRequest(request);
 
             var emailExists = await _userCommand.ExistsByEmailAsync(request.Email);
-            if (emailExists)
+            var RequestExistsAsync = await _userCommand.RegistrationRequestExistsAsync(request.Email);
+            if (emailExists || RequestExistsAsync)
             {
                 throw new InvalidOperationException("Email already exists");
             }

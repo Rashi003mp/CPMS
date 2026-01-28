@@ -42,4 +42,18 @@ public class UserCommandRepository : IUserCommandRepository
         .AnyAsync(u => u.Email == email && !u.IsDeleted);
     }
 
+    public async Task<bool> RegistrationRequestExistsAsync(string email)
+    {
+        var normalizedEmail = email.Trim().ToLower();
+
+        return await _context.RegistrationRequests
+            .AsNoTracking()
+            .AnyAsync(r =>
+                r.Email.ToLower() == normalizedEmail &&
+                r.Status == "Pending" &&
+                !r.IsDeleted
+            );
+    }
+
+
 }
