@@ -5,6 +5,7 @@ using ConstructionPM.Application.Interfaces.Repositories.Queries;
 using ConstructionPM.Application.Interfaces.Services;
 using ConstructionPM.Application.Services;
 using ConstructionPM.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,12 +37,17 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<IActionResult> Login(LoginRequestDto request)
     {
-        var token = await _authService.LoginAsync(request);
-        var reponse = ApiResponse<string>.SuccessResponse(token);
-        return Ok(reponse);
+        var response = await _authService.LoginAsync(request);
+
+        if (!response.Success)
+            return Unauthorized(response);
+
+        return Ok(response);
     }
+
 
 
     [HttpPost("forgot-password")]

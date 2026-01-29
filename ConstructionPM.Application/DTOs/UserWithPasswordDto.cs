@@ -14,5 +14,7 @@ namespace ConstructionPM.Application.DTOs
         public string Email { get; set; } = null!;
         public Role RoleId { get; set; }
         public string PasswordHash { get; set; } = null!;
+
+        public bool IsActive { get; set; } 
     }
 }

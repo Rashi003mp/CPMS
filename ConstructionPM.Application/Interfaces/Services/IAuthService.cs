@@ -1,4 +1,5 @@
 ﻿using ConstructionPM.Application.DTOs;
+using ConstructionPM.Application.DTOs.Response;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,6 @@ namespace ConstructionPM.Application.Interfaces.Services
 {
     public interface IAuthService
     {
-        Task<string> LoginAsync(LoginRequestDto request);
+        Task<ApiResponse<string>> LoginAsync(LoginRequestDto request);
     }
 }
