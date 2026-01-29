@@ -54,6 +54,11 @@ namespace ConstructionPM.Application.Services
             if (!Enum.IsDefined(typeof(Role), dto.Role))
                 return ApiResponse<object>.ErrorResponse("Invalid role specified");
 
+            if (user.RoleId == Role.Client && dto.Role != Role.Client)
+                {
+                return ApiResponse<object>.ErrorResponse("Client users can only be assigned the Client role");
+            }
+
             var currentProjectCount = await _projectAssignmentRepository.GetUserProjectCountAsync(dto.AssignedUserId);
             if (currentProjectCount >= MaxProjectsPerUser)
             {

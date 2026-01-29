@@ -24,7 +24,7 @@ namespace ConstructionPM.API.Controllers
             _projectService = projectService;
         }
 
-        [HttpPost]
+        [HttpPost("Create")]
         [Authorize(Roles = "Admin,ProjectManager")]
         public async Task<IActionResult>
             Create

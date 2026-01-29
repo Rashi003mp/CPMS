@@ -39,6 +39,7 @@ namespace ConstructionPM.Application.Services
                         UserId = u.Id,
                         UserName = u.Name,
                         Email = u.Email,
+                        RoleName=u.RoleId.ToString(),
                         ActiveProjectCount =
                             projectCounts.TryGetValue(u.Id, out var count)
                                 ? count

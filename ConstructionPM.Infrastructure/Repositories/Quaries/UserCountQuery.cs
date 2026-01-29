@@ -33,7 +33,7 @@ namespace ConstructionPM.Infrastructure.Repositories.Quaries
             INNER JOIN Projects p ON p.Id = pu.ProjectId
             WHERE pu.IsDeleted = 0
               AND p.IsDeleted = 0
-              AND pu.Action = 'Assigned'  -- ✅ Only active assignments
+              AND pu.Action = 'Assigned' 
             GROUP BY pu.AssignedUserId
              ";
 

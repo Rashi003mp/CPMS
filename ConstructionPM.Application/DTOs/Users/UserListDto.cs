@@ -12,6 +12,8 @@ namespace ConstructionPM.Application.DTOs.Users
         public string UserName { get; set; } = null!;
         public string Email { get; set; } = null!;
         public int ActiveProjectCount { get; set; }
+
+        public string? RoleName { get; set; }
     }
 
 }

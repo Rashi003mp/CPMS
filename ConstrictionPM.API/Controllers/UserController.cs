@@ -16,7 +16,7 @@ namespace ConstructionPM.API.Controllers
             _userService = userService;
         }
 
-        [HttpGet]
+        [HttpGet("GetAllUsers")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -24,7 +24,7 @@ namespace ConstructionPM.API.Controllers
             return Ok(users);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("GetUserById/{id}")]
         [Authorize]
         public async Task<IActionResult> GetUserById(int id)
         {
