@@ -17,6 +17,9 @@ namespace ConstructionPM.Domain.Entities
         public string? ResetToken { get; set; }
         public DateTime? ResetTokenExpiry { get; set; }
 
+        public bool IsActive { get; set; } = true;
+
+
 
     }
 }

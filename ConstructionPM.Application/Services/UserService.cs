@@ -23,6 +23,40 @@ namespace ConstructionPM.Application.Services
             _userProjectQuery = userProjectQuery;
         }
 
+        public async Task<ApiResponse<object>> DeactivateUserAsync(int userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null || user.IsDeleted)
+                return ApiResponse<object>.ErrorResponse("User not found");
+
+            if (!user.IsActive)
+                return ApiResponse<object>.ErrorResponse("User is already deactivated");
+
+            user.IsActive = false;
+            await _userRepository.UpdateAsync(user);
+
+            return ApiResponse<object>.SuccessResponse("User deactivated successfully");
+        }
+
+
+        public async Task<ApiResponse<object>> ActivateUserAsync(int userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null || user.IsDeleted)
+                return ApiResponse<object>.ErrorResponse("User not found");
+
+            if (user.IsActive)
+                return ApiResponse<object>.ErrorResponse("User is already active");
+
+            user.IsActive = true;
+            await _userRepository.UpdateAsync(user);
+
+            return ApiResponse<object>.SuccessResponse("User activated successfully");
+        }
+
+
         public async Task<ApiResponse<List<UserListDto>>> GetAllUsersAsync()
         {
             try
@@ -40,6 +74,7 @@ namespace ConstructionPM.Application.Services
                         UserName = u.Name,
                         Email = u.Email,
                         RoleName=u.RoleId.ToString(),
+                        IsActive=u.IsActive,
                         ActiveProjectCount =
                             projectCounts.TryGetValue(u.Id, out var count)
                                 ? count

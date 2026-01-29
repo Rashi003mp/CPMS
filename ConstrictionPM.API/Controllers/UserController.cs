@@ -35,5 +35,31 @@ namespace ConstructionPM.API.Controllers
 
             return Ok(response);
         }
+
+        [HttpPatch("Deactivate/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeactivateUser(int id)
+        {
+            var response = await _userService.DeactivateUserAsync(id);
+
+            if (!response.Success)
+                return BadRequest(response);
+
+            return Ok(response);
+        }
+
+        [HttpPatch("Activate/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ActivateUser(int id)
+        {
+            var response = await _userService.ActivateUserAsync(id);
+
+            if (!response.Success)
+                return BadRequest(response);
+
+            return Ok(response);
+        }
+
+
     }
 }

@@ -12,5 +12,9 @@ namespace ConstructionPM.Application.Interfaces.Services
     {
         Task<ApiResponse<List<UserListDto>>> GetAllUsersAsync();
         Task<ApiResponse<UserDetailDto>> GetUserByIdAsync(int userId);
+
+        Task<ApiResponse<object>> ActivateUserAsync(int userId);
+        Task<ApiResponse<object>> DeactivateUserAsync(int userId);
+
     }
 }

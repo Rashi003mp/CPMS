@@ -14,6 +14,8 @@ namespace ConstructionPM.Application.DTOs.Users
         public int ActiveProjectCount { get; set; }
 
         public string? RoleName { get; set; }
+
+        public bool IsActive { get; set; }
     }
 
 }
