@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace ConstructionPM.Domain.Enums
 {
-    public enum TaskStatus
+    public enum DomainTaskStatus
     {
-        Pending = 1,
-        InProgress,
-        Completed,
-        Blocked
+        Todo = 0,
+        InProgress = 1,
+        Blocked = 2,
+        Completed = 3,
+        Cancelled = 4
     }
 }

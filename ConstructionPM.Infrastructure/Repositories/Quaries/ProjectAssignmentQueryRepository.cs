@@ -1,4 +1,5 @@
 ﻿using ConstructionPM.Application.Interfaces.Repositories.Queries;
+using ConstructionPM.Domain.Entities;
 using ConstructionPM.Domain.Enums;
 using ConstructionPM.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -37,6 +38,20 @@ namespace ConstructionPM.Infrastructure.Repositories.Quaries
                 .AnyAsync(x =>
                     x.ProjectId == projectId &&
                     x.RoleId == role &&
+                    !x.IsDeleted
+                );
+        }
+
+        public async Task<ProjectUsers?> GetUserRoleInProjectAsync(
+     int projectId,
+     int userId
+ )
+        {
+            return await _db.ProjectUsers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x =>
+                    x.ProjectId == projectId &&
+                    x.AssignedUserId == userId &&
                     !x.IsDeleted
                 );
         }

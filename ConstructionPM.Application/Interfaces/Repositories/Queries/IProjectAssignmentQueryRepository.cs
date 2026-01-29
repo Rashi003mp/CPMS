@@ -1,4 +1,5 @@
-﻿using ConstructionPM.Domain.Enums;
+﻿using ConstructionPM.Domain.Entities;
+using ConstructionPM.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,8 @@ namespace ConstructionPM.Application.Interfaces.Repositories.Queries
         Task<int> GetUserProjectCountAsync(int userId);
         Task<bool> IsUserAlreadyAssignedAsync(int projectId, int userId);
         Task<bool> IsRoleAlreadyAssignedInProjectAsync(int projectId, Role role);
+        Task<ProjectUsers?> GetUserRoleInProjectAsync(int projectId, int userId);
+
 
 
     }

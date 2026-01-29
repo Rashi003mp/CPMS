@@ -2,25 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ConstructionPM.Domain.Enums;
+using System.Threading.Tasks;
 
-namespace ConstructionPM.Domain.Entities
+namespace ConstructionPM.Application.DTOs.TaskManager
 {
-
-
-    public class TaskItem : BaseEntity
+    public class CreateTaskDto
     {
-        public string Title { get; set; } = null!;
-
-        public string? Description { get; set; }
-
         public int ProjectId { get; set; }
-
+        public string Title { get; set; } = null!;
+        public string? Description { get; set; }
         public int AssignedToUserId { get; set; }
-
         public DateTime DueDate { get; set; }
-
-        public DomainTaskStatus Status { get; set; }
     }
 
 }

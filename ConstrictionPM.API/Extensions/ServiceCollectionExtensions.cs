@@ -77,6 +77,7 @@ namespace ConstructionPM.API.Extensions
             services.AddScoped<IProjectUsersService, ProjectUsersService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IUserProjectQuery, UserProjectQuery>();
+            services.AddScoped<ITaskService, TaskService>();
 
             // ---------- Security ----------
             services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
