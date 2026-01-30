@@ -5,10 +5,8 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ---------- Configurations ----------
 builder.Services.AddAppConfigurations(builder.Configuration);
 
-// ---------- Controllers & JSON ----------
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -46,22 +44,17 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// ---------- Auth ----------
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
-// ---------- Application DI ----------
 builder.Services.AddApplicationServices(builder.Configuration);
 
-// ---------- HttpContext ----------
 builder.Services.AddHttpContextAccessor();
 
-// ---------- Build ----------
 var app = builder.Build();
 
 //
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 
-// ---------- Middleware ----------
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

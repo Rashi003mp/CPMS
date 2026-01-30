@@ -86,6 +86,11 @@ namespace ConstructionPM.Application.Services
 
         public async Task<ApiResponse<object>> DeleteProjectAsync(int projectId, string Reason)
         {
+            if (projectId <=0 )
+                return ApiResponse<object>.ErrorResponse("Invalid project ID");
+            if (string.IsNullOrWhiteSpace(Reason))
+                return ApiResponse<object>.ErrorResponse("Reason for deletion is required");
+
             await _unitOfWork.BeginTransactionAsync();
 
             try

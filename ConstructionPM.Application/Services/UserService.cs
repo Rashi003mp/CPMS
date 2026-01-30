@@ -13,14 +13,18 @@ namespace ConstructionPM.Application.Services
         private readonly IGenericRepository<User> _userRepository;
         private readonly IUserCountQuery _userCount;
         private readonly IUserProjectQuery _userProjectQuery;
+        private readonly IProjectAssignmentQueryRepository _projectAssignmentQueryRepository;   
 
-        public UserService(IGenericRepository<User> userRepository,
+        public UserService(
+            IGenericRepository<User> userRepository,
             IUserCountQuery userCount,
-            IUserProjectQuery userProjectQuery)
+            IUserProjectQuery userProjectQuery,
+            IProjectAssignmentQueryRepository projectAssignmentQuery)
         {
             _userRepository = userRepository;
             _userCount = userCount;
             _userProjectQuery = userProjectQuery;
+            _projectAssignmentQueryRepository = projectAssignmentQuery;
         }
 
         public async Task<ApiResponse<object>> DeactivateUserAsync(int userId)
@@ -29,6 +33,10 @@ namespace ConstructionPM.Application.Services
 
             if (user == null || user.IsDeleted)
                 return ApiResponse<object>.ErrorResponse("User not found");
+
+            var currentProjectCount = _projectAssignmentQueryRepository.GetUserProjectCountAsync(userId);
+            if (currentProjectCount.Result > 0)
+                return ApiResponse<object>.ErrorResponse("User is assigned to active projects. Cannot deactivate.");
 
             if (!user.IsActive)
                 return ApiResponse<object>.ErrorResponse("User is already deactivated");

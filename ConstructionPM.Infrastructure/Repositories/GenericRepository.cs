@@ -53,9 +53,13 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
             .AnyAsync(u => u.Email == email);
     }
 
-    
-
-
+    public Task<bool> IsActiveAsync(int id)
+    {
+        
+        return _context.Users
+            .AsNoTracking()
+            .AnyAsync(u => u.Id == id && u.IsActive);
+    }
 }
 
 

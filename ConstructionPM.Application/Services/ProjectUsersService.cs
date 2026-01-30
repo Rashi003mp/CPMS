@@ -39,6 +39,10 @@ namespace ConstructionPM.Application.Services
 
         public async Task<ApiResponse<object>> AssignUserToProjectAsync(int projectId, AssignProjectUserDto dto)
         {
+            var IsUserActive =await _userRepository.IsActiveAsync(dto.AssignedUserId);
+            if (!IsUserActive) 
+                 return ApiResponse<object>.ErrorResponse("User is inactive");
+
             var project = await _projectRepository.GetByIdAsync(projectId);
             if (project == null || project.IsDeleted)
             {

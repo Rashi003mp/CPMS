@@ -1,8 +1,6 @@
-﻿using ConstructionPM.Application.DTOs;
-using ConstructionPM.Application.DTOs.Projects;
+﻿using ConstructionPM.Application.DTOs.Projects;
 using ConstructionPM.Application.DTOs.Projects.CreateProject;
 using ConstructionPM.Application.DTOs.Projects.GetProjects;
-using ConstructionPM.Application.DTOs.Projects.ProjectUsers;
 using ConstructionPM.Application.DTOs.Response;
 using ConstructionPM.Application.Interfaces.Services;
 using ConstructionPM.Domain.Enums;
