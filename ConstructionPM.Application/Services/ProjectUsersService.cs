@@ -95,6 +95,31 @@ namespace ConstructionPM.Application.Services
 
             await _projectUsersRepository.AddAsync(assignment);
 
+
+            if (dto.Role == Role.SiteEngineer)
+            {
+                var hasProjectManager =
+            await _projectAssignmentRepository
+                .IsRoleAlreadyAssignedInProjectAsync(
+                    projectId,
+                    Role.ProjectManager);
+
+                if (!hasProjectManager)
+                {
+                    var pmAssignment = new ProjectUsers
+                    {
+                        ProjectId = projectId,
+                        AssignedUserId = dto.AssignedUserId,
+                        AssignedUserName = dto.AssignedUserName,
+                        RoleId = Role.ProjectManager,
+                        Action = ProjectRoleActions.Assigned.ToString(),
+                    };
+
+                    await _projectUsersRepository.AddAsync(pmAssignment);
+                }
+            }
+
+
             return ApiResponse<object>.SuccessResponse("User assigned to project successfully");
 
 
