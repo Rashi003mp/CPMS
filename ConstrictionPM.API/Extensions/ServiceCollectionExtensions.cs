@@ -1,5 +1,7 @@
 ﻿using ConstrictionPM.API.Services;
+using ConstructionPM.Application.Factories;
 using ConstructionPM.Application.Interfaces.Auth;
+using ConstructionPM.Application.Interfaces.Factories;
 using ConstructionPM.Application.Interfaces.Repositories.Commands;
 using ConstructionPM.Application.Interfaces.Repositories.Queries;
 using ConstructionPM.Application.Interfaces.Services;
@@ -78,6 +80,10 @@ namespace ConstructionPM.API.Extensions
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IUserProjectQuery, UserProjectQuery>();
             services.AddScoped<ITaskService, TaskService>();
+
+            // ---- Factory ----
+            services.AddScoped<IProjectUsersHistoryFactory, ProjectUsersHistoryFactory>();
+
 
             // ---------- Security ----------
             services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();

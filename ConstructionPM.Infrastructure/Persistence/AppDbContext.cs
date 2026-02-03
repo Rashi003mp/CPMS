@@ -1,5 +1,6 @@
 ﻿using ConstructionPM.Application.Interfaces.Auth;
 using ConstructionPM.Domain.Entities;
+using ConstructionPM.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace ConstructionPM.Infrastructure.Persistence
@@ -28,6 +29,9 @@ namespace ConstructionPM.Infrastructure.Persistence
             Set<ProjectStatusHistory>();
         public DbSet<RegistrationRequest> RegistrationRequests =>
             Set<RegistrationRequest>();
+
+        public DbSet<ProjectUsersHistory> ProjectUsersHistory =>
+            Set<ProjectUsersHistory>();
 
 
 
