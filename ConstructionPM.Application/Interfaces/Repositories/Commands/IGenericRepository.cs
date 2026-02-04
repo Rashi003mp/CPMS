@@ -17,6 +17,8 @@ namespace ConstructionPM.Application.Interfaces.Repositories.Commands
 
         Task <bool> IsActiveAsync(int id);
 
+        Task HardDeleteAsync(T entity);
+
     }
 
 }

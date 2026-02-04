@@ -60,6 +60,14 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
             .AsNoTracking()
             .AnyAsync(u => u.Id == id && u.IsActive);
     }
+
+    public async Task HardDeleteAsync(T entity)
+    {
+        _context.SetBypassSoftDelete(true);
+        _dbSet.Remove(entity);
+        await _context.SaveChangesAsync();
+        _context.SetBypassSoftDelete(false); // Reset the flag
+    }
 }
 
 

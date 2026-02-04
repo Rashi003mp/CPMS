@@ -8,6 +8,7 @@ namespace ConstructionPM.Infrastructure.Persistence
     public class AppDbContext : DbContext
     {
         private readonly ICurrentUserService? _currentUser;
+        private bool _bypassSoftDelete = false;
 
         public AppDbContext(
             DbContextOptions<AppDbContext> options,
@@ -55,6 +56,11 @@ namespace ConstructionPM.Infrastructure.Persistence
         // =========================
         // Audit Logic (Centralized)
         // =========================
+
+        public void SetBypassSoftDelete(bool bypass)
+        {
+            _bypassSoftDelete = bypass;
+        }
         private void ApplyAuditInfo()
         {
             var entries = ChangeTracker.Entries<BaseEntity>();
@@ -87,6 +93,13 @@ namespace ConstructionPM.Infrastructure.Persistence
                         break;
 
                     case EntityState.Deleted:
+                        // Check if we should bypass soft delete
+                        if (_bypassSoftDelete)
+                        {
+                            // Allow hard delete - don't change the state
+                            break;
+                        }
+
                         // Soft delete
                         entry.State = EntityState.Modified;
                         entry.Entity.IsDeleted = true;
@@ -97,6 +110,48 @@ namespace ConstructionPM.Infrastructure.Persistence
                 }
             }
         }
+        //private void ApplyAuditInfo()
+        //{
+        //    var entries = ChangeTracker.Entries<BaseEntity>();
+
+        //    var userId = _currentUser?.UserId > 0 ? _currentUser.UserId : null;
+        //    var userName = !string.IsNullOrWhiteSpace(_currentUser?.UserName)
+        //        ? _currentUser!.UserName
+        //        : "System";
+
+        //    foreach (var entry in entries)
+        //    {
+        //        switch (entry.State)
+        //        {
+        //            case EntityState.Added:
+        //                entry.Entity.CreatedAt = DateTime.UtcNow;
+        //                entry.Entity.CreatedByUserId = userId;
+        //                entry.Entity.CreatedByUserName = userName;
+        //                entry.Entity.IsDeleted = false;
+        //                break;
+
+        //            case EntityState.Modified:
+        //                // Protect Created fields
+        //                entry.Property(x => x.CreatedAt).IsModified = false;
+        //                entry.Property(x => x.CreatedByUserId).IsModified = false;
+        //                entry.Property(x => x.CreatedByUserName).IsModified = false;
+
+        //                entry.Entity.ModifiedAt = DateTime.UtcNow;
+        //                entry.Entity.ModifiedByUserId = userId;
+        //                entry.Entity.ModifiedByUserName = userName;
+        //                break;
+
+        //            case EntityState.Deleted:
+        //                // Soft delete
+        //                entry.State = EntityState.Modified;
+        //                entry.Entity.IsDeleted = true;
+        //                entry.Entity.DeletedAt = DateTime.UtcNow;
+        //                entry.Entity.DeletedByUserId = userId;
+        //                entry.Entity.DeletedByUserName = userName;
+        //                break;
+        //        }
+        //    }
+        //}
 
         // =========================
         // Model Configuration
