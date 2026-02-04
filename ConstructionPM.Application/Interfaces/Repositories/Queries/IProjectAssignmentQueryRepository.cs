@@ -15,7 +15,7 @@ namespace ConstructionPM.Application.Interfaces.Repositories.Queries
         Task<bool> IsRoleAlreadyAssignedInProjectAsync(int projectId, Role role);
         Task<ProjectUsers?> GetUserRoleInProjectAsync(int projectId, int userId);
 
-
+        Task<ProjectUsers?> GetProjectUserAsync(int projectId, int userId);
 
     }
 }

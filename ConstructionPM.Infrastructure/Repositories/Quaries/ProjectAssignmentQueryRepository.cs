@@ -56,5 +56,14 @@ namespace ConstructionPM.Infrastructure.Repositories.Quaries
                 );
         }
 
+        public async Task<ProjectUsers?> GetProjectUserAsync(int projectId, int userId)
+        {
+            return await _db.ProjectUsers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(pu =>
+                    pu.ProjectId == projectId &&
+                    pu.Id == userId &&
+                    !pu.IsDeleted);
+        }
     }
 }

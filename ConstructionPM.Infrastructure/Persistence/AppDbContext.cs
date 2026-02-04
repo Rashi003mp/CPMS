@@ -36,6 +36,7 @@ namespace ConstructionPM.Infrastructure.Persistence
         public DbSet<ProjectUsersHistory> ProjectUsersHistory =>
             Set<ProjectUsersHistory>();
 
+        public DbSet<Comment> Comments => Set<Comment>();
 
 
 

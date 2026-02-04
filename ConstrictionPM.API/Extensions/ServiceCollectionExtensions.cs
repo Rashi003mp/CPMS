@@ -2,6 +2,7 @@
 using ConstructionPM.Application.Factories;
 using ConstructionPM.Application.Interfaces.Auth;
 using ConstructionPM.Application.Interfaces.Factories;
+using ConstructionPM.Application.Interfaces.Repositories;
 using ConstructionPM.Application.Interfaces.Repositories.Commands;
 using ConstructionPM.Application.Interfaces.Repositories.Queries;
 using ConstructionPM.Application.Interfaces.Services;
@@ -14,6 +15,7 @@ using ConstructionPM.Domain.Entities;
 using ConstructionPM.Infrastructure.Auth;
 using ConstructionPM.Infrastructure.Dapper;
 using ConstructionPM.Infrastructure.Persistence;
+using ConstructionPM.Infrastructure.Repositories;
 using ConstructionPM.Infrastructure.Repositories.Commands;
 using ConstructionPM.Infrastructure.Repositories.Quaries;
 using ConstructionPM.Infrastructure.Repositories.Queries;
@@ -63,6 +65,8 @@ namespace ConstructionPM.API.Extensions
             services.AddScoped<IProjectStatusHistoryCommandRepository,ProjectStatusHistoryCommandRepository >();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserCountQuery,UserCountQuery>();
+            services.AddScoped<ICommentRepository, CommentRepository>();
+
 
 
             // validators
@@ -88,6 +92,7 @@ namespace ConstructionPM.API.Extensions
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IUserProjectQuery, UserProjectQuery>();
             services.AddScoped<ITaskService, TaskService>();
+            services.AddScoped<ICommentService, CommentService>();
 
             // ---- Factory ----
             services.AddScoped<IProjectUsersHistoryFactory, ProjectUsersHistoryFactory>();
