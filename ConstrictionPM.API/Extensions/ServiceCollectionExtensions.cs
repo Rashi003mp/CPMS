@@ -36,8 +36,16 @@ namespace ConstructionPM.API.Extensions
             var connectionString =
                 configuration.GetConnectionString("DefaultConnection");
 
+            //services.AddDbContext<AppDbContext>(options =>
+            //    options.UseSqlServer(connectionString));
+
             services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(connectionString));
+             {
+                 options.UseSqlServer(connectionString);
+
+                 options.EnableSensitiveDataLogging();   // shows actual values
+                 options.LogTo(Console.WriteLine);        // prints SQL + mapping
+             });
 
             services.AddSingleton(new DapperContext(connectionString!));
 

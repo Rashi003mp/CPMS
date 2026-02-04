@@ -1,5 +1,6 @@
 ﻿using ConstructionPM.Application.Interfaces.Auth;
 using ConstructionPM.Domain.Entities;
+using ConstructionPM.Domain.Entities.ConstructionPM.Domain.Entities;
 using ConstructionPM.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,6 +25,7 @@ namespace ConstructionPM.Infrastructure.Persistence
         public DbSet<User> Users => Set<User>();
         public DbSet<Project> Projects => Set<Project>();
         public DbSet<TaskItem> Tasks => Set<TaskItem>();
+        public DbSet<TasksHistory> TasksHistory => Set<TasksHistory>();
         public DbSet<Document> Documents => Set<Document>();
         public DbSet<ProjectUsers> ProjectUsers => Set<ProjectUsers>();
         public DbSet<ProjectStatusHistory> ProjectStatusHistory =>

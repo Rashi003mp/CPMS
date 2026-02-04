@@ -14,6 +14,11 @@ namespace ConstructionPM.Application.Interfaces.Services
             CreateTaskDto dto,
             int currentUserId
         );
+
+        Task<ApiResponse> UpdateTaskAsync(UpdateTaskDto dto);
+        Task<ApiResponse> DeleteTaskAsync(int taskId, string? reason);
+        Task<ApiResponse<TaskDto>> GetTaskByIdAsync(int taskId);
+        Task<ApiResponse<List<TaskDto>>> GetTasksByProjectAsync(int projectId);
     }
 
 }

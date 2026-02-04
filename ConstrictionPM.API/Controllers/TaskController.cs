@@ -42,6 +42,54 @@ namespace ConstructionPM.API.Controllers
 
             return Ok(response);
         }
+
+        // UPDATE Task
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateTask([FromBody] UpdateTaskDto dto)
+        {
+            var result = await _taskService.UpdateTaskAsync(dto);
+
+            if (!result.Success)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        // DELETE Task
+        [HttpDelete("delete/{taskId}")]
+        public async Task<IActionResult> DeleteTask(int taskId, [FromQuery] string? reason)
+        {
+            var result = await _taskService.DeleteTaskAsync(taskId, reason);
+
+            if (!result.Success)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        //  GET Task by ID
+        [HttpGet("{taskId}")]
+        public async Task<IActionResult> GetTaskById(int taskId)
+        {
+            var result = await _taskService.GetTaskByIdAsync(taskId);
+
+            if (!result.Success)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
+        //GET all tasks for a project
+        [HttpGet("project/{projectId}")]
+        public async Task<IActionResult> GetTasksByProject(int projectId)
+        {
+            var result = await _taskService.GetTasksByProjectAsync(projectId);
+
+            if (!result.Success)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
     }
 
 }

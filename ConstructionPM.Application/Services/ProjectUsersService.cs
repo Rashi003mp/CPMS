@@ -47,107 +47,7 @@ namespace ConstructionPM.Application.Services
         }
 
 
-        //public async Task<ApiResponse> UnassignUserAsync(UnassignUserDto dto)
-        //{
-        //    await _unitOfWork.BeginTransactionAsync();
-
-        //    try
-        //    {
-        //        var project = await _projectRepository.GetByIdAsync(dto.ProjectId);
-        //        if (project == null)
-        //        {
-        //            await _unitOfWork.RollbackAsync();
-        //            return ApiResponse.ErrorResponse("Project not found");
-        //        }
-
-        //        var assignments = await _projectUsersRepository.GetAllAsync();
-
-        //        var assignment = assignments.FirstOrDefault(pu =>
-        //            pu.ProjectId == dto.ProjectId &&
-        //            pu.AssignedUserId == dto.UserId &&
-        //            (int)pu.RoleId == dto.RoleId &&
-        //            !pu.IsDeleted
-        //        );
-
-        //        if (assignment == null)
-        //        {
-        //            await _unitOfWork.RollbackAsync();
-        //            return ApiResponse.ErrorResponse("User assignment not found");
-        //        }
-
-        //        assignment.Action = ProjectRoleActions.Unassigned.ToString();
-        //        assignment.Reason = dto.Reason;
-
-        //        await _projectUsersRepository.DeleteAsync(assignment);
-
-        //        await _unitOfWork.CommitAsync();
-        //        return ApiResponse.SuccessResponse("User unassigned successfully");
-        //    }
-        //    catch
-        //    {
-        //        await _unitOfWork.RollbackAsync();
-        //        return ApiResponse.ErrorResponse("Unable to unassign user");
-        //    }
-        //}
-        //public async Task<ApiResponse> UnassignUserAsync(UnassignUserDto dto)
-        //{
-        //    await _unitOfWork.BeginTransactionAsync();
-        //    try
-        //    {
-        //        var project = await _projectRepository.GetByIdAsync(dto.ProjectId);
-        //        if (project == null)
-        //        {
-        //            await _unitOfWork.RollbackAsync();
-        //            return ApiResponse.ErrorResponse("Project not found");
-        //        }
-
-        //        var assignments = await _projectUsersRepository.GetAllAsync();
-        //        var assignment = assignments.FirstOrDefault(pu =>
-        //            pu.ProjectId == dto.ProjectId &&
-        //            pu.AssignedUserId == dto.UserId &&
-        //            (int)pu.RoleId == dto.RoleId &&
-        //            !pu.IsDeleted
-        //        );
-
-        //        if (assignment == null)
-        //        {
-        //            await _unitOfWork.RollbackAsync();
-        //            return ApiResponse.ErrorResponse("User assignment not found");
-        //        }
-        //        var projectUserId = assignment.Id;
-        //        // Update action and reason
-        //        assignment.Action = ProjectRoleActions.Unassigned.ToString();
-        //        assignment.Reason = dto.Reason;
-
-        //        await _unitOfWork.SaveChangesAsync();
-        //        // Create history record
-        //        var historyRecord = new ProjectUsersHistory
-        //        {
-        //            ProjectUserId = assignment.Id,
-        //            ProjectId = assignment.ProjectId,
-        //            RoleId =(int)assignment.RoleId,
-        //            AssignedUserId = assignment.AssignedUserId,
-        //            AssignedUserName = assignment.AssignedUserName,
-        //            Action = assignment.Action,
-        //            Reason = assignment.Reason
-        //            // Audit fields will be set automatically by ApplyAuditInfo
-        //        };
-
-        //        // Hard delete from ProjectUsers table
-        //        await _projectUsersRepository.HardDeleteAsync(assignment);
-
-        //        await _projectUsersHistoryRepository.AddAsync(historyRecord);
-
-
-        //        await _unitOfWork.CommitAsync();
-        //        return ApiResponse.SuccessResponse("User unassigned successfully");
-        //    }
-        //    catch
-        //    {
-        //        await _unitOfWork.RollbackAsync();
-        //        return ApiResponse.ErrorResponse("Unable to unassign user");
-        //    }
-        //}
+        
 
         public async Task<ApiResponse> UnassignUserAsync(UnassignUserDto dto)
         {
@@ -175,10 +75,10 @@ namespace ConstructionPM.Application.Services
                     return ApiResponse.ErrorResponse("User assignment not found");
                 }
 
-                // Capture ALL data before deleting
+                
                 var historyRecord = new ProjectUsersHistory
                 {
-                    ProjectUserId = assignment.Id,  // Store the ID value
+                    ProjectUserId = assignment.Id,  
                     ProjectId = assignment.ProjectId,
                     RoleId = (int)assignment.RoleId,
                     AssignedUserId = assignment.AssignedUserId,
@@ -187,11 +87,10 @@ namespace ConstructionPM.Application.Services
                     Reason = dto.Reason
                 };
 
-                // Add history record FIRST
+                
                 await _projectUsersHistoryRepository.AddAsync(historyRecord);
-                await _unitOfWork.SaveChangesAsync(); // Save the history first
+                await _unitOfWork.SaveChangesAsync();
 
-                // Then hard delete
                 await _projectUsersRepository.HardDeleteAsync(assignment);
 
                 await _unitOfWork.CommitAsync();
@@ -205,80 +104,7 @@ namespace ConstructionPM.Application.Services
         }
 
 
-        //public async Task<ApiResponse> ReplaceUserAsync(ReplaceUserDto dto)
-        //{
-        //    await _unitOfWork.BeginTransactionAsync();
-
-        //    try
-        //    {
-        //        var project = await _projectRepository.GetByIdAsync(dto.ProjectId);
-        //        if (project == null)
-        //        {
-        //            await _unitOfWork.RollbackAsync();
-        //            return ApiResponse.ErrorResponse("Project not found");
-        //        }
-
-        //        var newUser = await _userRepository.GetByIdAsync(dto.NewUserId);
-        //        if (newUser == null)
-        //        {
-        //            await _unitOfWork.RollbackAsync();
-        //            return ApiResponse.ErrorResponse("New user not found");
-        //        }
-
-        //        var assignments = await _projectUsersRepository.GetAllAsync();
-
-        //        var oldAssignment = assignments.FirstOrDefault(pu =>
-        //            pu.ProjectId == dto.ProjectId &&
-        //            pu.AssignedUserId == dto.OldUserId &&
-        //            (int)pu.RoleId == dto.RoleId &&
-        //            !pu.IsDeleted
-        //        );
-
-        //        if (oldAssignment == null)
-        //        {
-        //            await _unitOfWork.RollbackAsync();
-        //            return ApiResponse.ErrorResponse("Old user assignment not found");
-        //        }
-
-        //        var duplicate = assignments.Any(pu =>
-        //            pu.ProjectId == dto.ProjectId &&
-        //            pu.AssignedUserId == dto.NewUserId &&
-        //            (int)pu.RoleId == dto.RoleId &&
-        //            !pu.IsDeleted
-        //        );
-
-        //        if (duplicate)
-        //        {
-        //            await _unitOfWork.RollbackAsync();
-        //            return ApiResponse.ErrorResponse("New user already assigned to this role");
-        //        }
-
-        //        oldAssignment.Action = ProjectRoleActions.Replaced.ToString();
-        //        oldAssignment.Reason = dto.Reason;
-
-        //        await _projectUsersRepository.DeleteAsync(oldAssignment);
-
-        //        var newAssignment = new ProjectUsers
-        //        {
-        //            ProjectId = dto.ProjectId,
-        //            AssignedUserId = dto.NewUserId,
-        //            AssignedUserName = newUser.Name,
-        //            RoleId = (Role)dto.RoleId,
-        //            Action = ProjectRoleActions.Assigned.ToString(),
-        //            Reason = "Replacement"
-        //        };
-
-        //        await _projectUsersRepository.AddAsync(newAssignment);
-
-        //        await _unitOfWork.CommitAsync();
-        //        return ApiResponse.SuccessResponse("User replaced successfully");
-        //    }
-        //    catch
-        //    {
-        //        await _unitOfWork.RollbackAsync();
-        //        return ApiResponse.ErrorResponse("Unable to replace user");
-        //    }
-        //}
+        
 
 
         public async Task<ApiResponse> ReplaceUserAsync(ReplaceUserDto dto)
@@ -327,9 +153,6 @@ namespace ConstructionPM.Application.Services
                     return ApiResponse.ErrorResponse("New user already assigned to this role");
                 }
 
-                // ============================================
-                // Step 1: Create history for OLD user (Replaced)
-                // ============================================
                 var oldUserHistory = new ProjectUsersHistory
                 {
                     ProjectUserId = oldAssignment.Id,
@@ -342,16 +165,12 @@ namespace ConstructionPM.Application.Services
                 };
 
                 await _projectUsersHistoryRepository.AddAsync(oldUserHistory);
-                await _unitOfWork.SaveChangesAsync(); // Save history first
+                await _unitOfWork.SaveChangesAsync(); 
 
-                // ============================================
-                // Step 2: Hard delete old assignment
-                // ============================================
+               
                 await _projectUsersRepository.HardDeleteAsync(oldAssignment);
 
-                // ============================================
-                // Step 3: Create NEW assignment
-                // ============================================
+              
                 var newAssignment = new ProjectUsers
                 {
                     ProjectId = dto.ProjectId,
@@ -363,14 +182,11 @@ namespace ConstructionPM.Application.Services
                 };
 
                 await _projectUsersRepository.AddAsync(newAssignment);
-                await _unitOfWork.SaveChangesAsync(); // Save new assignment
+                await _unitOfWork.SaveChangesAsync(); 
 
-                // ============================================
-                // Step 4: Create history for NEW user (Assigned via Replacement)
-                // ============================================
                 var newUserHistory = new ProjectUsersHistory
                 {
-                    ProjectUserId = newAssignment.Id, // Reference to the newly created assignment
+                    ProjectUserId = newAssignment.Id, 
                     ProjectId = newAssignment.ProjectId,
                     RoleId = (int)newAssignment.RoleId,
                     AssignedUserId = newAssignment.AssignedUserId,
@@ -390,6 +206,8 @@ namespace ConstructionPM.Application.Services
                 return ApiResponse.ErrorResponse($"Unable to replace user: {ex.Message}");
             }
         }
+        
+        
         public async Task<ApiResponse<object>> AssignUserToProjectAsync(
                     int projectId,
                     AssignProjectUserDto dto
@@ -441,7 +259,6 @@ namespace ConstructionPM.Application.Services
                         .ErrorResponse("This role already exists in the project");
                 }
 
-                // ================= MAIN ASSIGNMENT =================
 
                 var assignment = new ProjectUsers
                 {
@@ -454,7 +271,7 @@ namespace ConstructionPM.Application.Services
                 };
 
                 await _projectUsersRepository.AddAsync(assignment);
-                await _unitOfWork.SaveChangesAsync(); // 🔑 ID GENERATED HERE
+                await _unitOfWork.SaveChangesAsync(); 
 
                 var history = _projectUsersHistoryFactory.Create(
                     assignment,
@@ -462,7 +279,6 @@ namespace ConstructionPM.Application.Services
 
                 await _projectUsersHistoryRepository.AddAsync(history);
 
-                // ================= AUTO PM ASSIGNMENT =================
 
                 if (dto.Role == Role.SiteEngineer)
                 {
@@ -485,7 +301,7 @@ namespace ConstructionPM.Application.Services
                         };
 
                         await _projectUsersRepository.AddAsync(pmAssignment);
-                        await _unitOfWork.SaveChangesAsync(); // 🔑 ID GENERATED
+                        await _unitOfWork.SaveChangesAsync(); 
 
                         var pmHistory = _projectUsersHistoryFactory.Create(
                             pmAssignment,
