@@ -2,8 +2,7 @@
 using ConstructionPM.Domain.Entities;
 using ConstructionPM.Infrastructure.Dapper;
 using Dapper;
-using Microsoft.EntityFrameworkCore;
-using ConstructionPM.Infrastructure.Persistence;
+
 
 namespace ConstructionPM.Infrastructure.Repositories.Quaries
 {
@@ -14,6 +13,25 @@ namespace ConstructionPM.Infrastructure.Repositories.Quaries
         public ProjectQueryRepository(DapperContext context)
         {
             _context = context;
+        }
+
+        public async Task<bool> IsProjectNameExistsAsync(string projectName)
+        {
+            const string sql = @"
+            SELECT COUNT(1)
+            FROM Projects
+            WHERE ProjectName = @ProjectName
+              AND IsDeleted = 0
+        ";
+
+            using var connection = _context.CreateConnection();
+
+            var count = await connection.ExecuteScalarAsync<int>(
+                sql,
+                new { ProjectName = projectName }
+            );
+
+            return count > 0;
         }
 
         public async Task<Project?> GetByIdAsync(int id)

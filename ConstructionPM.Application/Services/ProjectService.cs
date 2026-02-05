@@ -20,6 +20,7 @@ namespace ConstructionPM.Application.Services
 
 
         private readonly IProjectCommandRepository _projectRepository;
+        private readonly IProjectQueryRepository _projectQueryRepository;
         private readonly IProjectQueryRepository _ProjectQueryRepository;
         private readonly IProjectStatusHistoryCommandRepository _historyRepository;
         private readonly IUnitOfWork _unitOfWork;
@@ -34,7 +35,8 @@ namespace ConstructionPM.Application.Services
             IProjectQueryRepository ProjectQueryRepository,
             IGenericRepository<Project> GenericRepository,
             ILogger<ProjectService> logger,
-            IGenericRepository<ProjectUsers> ProjectUsersRepository
+            IGenericRepository<ProjectUsers> ProjectUsersRepository,
+            IProjectQueryRepository projectQueryRepository
             )
         {
             _projectRepository = projectRepository;
@@ -44,10 +46,27 @@ namespace ConstructionPM.Application.Services
             _genericRepository = GenericRepository;
             _logger = logger;
             _ProjectUsersRepository = ProjectUsersRepository;
+            _projectQueryRepository = ProjectQueryRepository;
         }
 
         public async Task<int> CreateAsync(CreateProjectDto dto)
         {
+            var isNameExists = await _projectQueryRepository
+                .IsProjectNameExistsAsync(dto.ProjectName);
+
+            if (isNameExists)
+                throw new ArgumentException("Project name already exists.");
+
+            if (dto.StartDate.Date < DateTime.UtcNow.Date)
+                throw new ArgumentException("Start date cannot be in the past.");
+
+            if (dto.EndDate.HasValue && dto.EndDate < dto.StartDate)
+                throw new ArgumentException("End date cannot be earlier than start date.");
+
+            if (dto.Status == ProjectStatus.Completed)
+                throw new ArgumentException("Project cannot be created with Completed status.");
+
+
             await _unitOfWork.BeginTransactionAsync();
 
             try

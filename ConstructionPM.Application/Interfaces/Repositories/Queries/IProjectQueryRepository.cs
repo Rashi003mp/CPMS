@@ -14,5 +14,7 @@ namespace ConstructionPM.Application.Interfaces.Repositories.Queries
         Task<Project?> GetByIdAsync(int id);
 
         Task<List<Project>> GetAllAsync();
+
+        Task<bool> IsProjectNameExistsAsync(string projectName);
     }
 }
