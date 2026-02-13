@@ -26,6 +26,7 @@ namespace ConstructionPM.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IGenericRepository<Project> _genericRepository;
         private readonly IGenericRepository<ProjectUsers> _ProjectUsersRepository;
+        private readonly IProjectAssignmentQueryRepository _projectAssignmentQueryRepository;
 
 
         public ProjectService(
@@ -36,7 +37,8 @@ namespace ConstructionPM.Application.Services
             IGenericRepository<Project> GenericRepository,
             ILogger<ProjectService> logger,
             IGenericRepository<ProjectUsers> ProjectUsersRepository,
-            IProjectQueryRepository projectQueryRepository
+            IProjectQueryRepository projectQueryRepository,
+            IProjectAssignmentQueryRepository projectAssignmentQuery
             )
         {
             _projectRepository = projectRepository;
@@ -47,25 +49,25 @@ namespace ConstructionPM.Application.Services
             _logger = logger;
             _ProjectUsersRepository = ProjectUsersRepository;
             _projectQueryRepository = ProjectQueryRepository;
+            _projectAssignmentQueryRepository = projectAssignmentQuery;
         }
 
-        public async Task<int> CreateAsync(CreateProjectDto dto)
+        public async Task<ApiResponse<int>> CreateAsync(CreateProjectDto dto)
         {
             var isNameExists = await _projectQueryRepository
                 .IsProjectNameExistsAsync(dto.ProjectName);
 
             if (isNameExists)
-                throw new ArgumentException("Project name already exists.");
+                return ApiResponse<int>.ErrorResponse("Project name already exists.", 400);
 
             if (dto.StartDate.Date < DateTime.UtcNow.Date)
-                throw new ArgumentException("Start date cannot be in the past.");
+                return ApiResponse<int>.ErrorResponse("Start date cannot be in the past.", 400);
 
             if (dto.EndDate.HasValue && dto.EndDate < dto.StartDate)
-                throw new ArgumentException("End date cannot be earlier than start date.");
+                return ApiResponse<int>.ErrorResponse("End date cannot be earlier than start date.", 400);
 
             if (dto.Status == ProjectStatus.Completed)
-                throw new ArgumentException("Project cannot be created with Completed status.");
-
+                return ApiResponse<int>.ErrorResponse("Project cannot be created with Completed status.", 400);
 
             await _unitOfWork.BeginTransactionAsync();
 
@@ -81,7 +83,7 @@ namespace ConstructionPM.Application.Services
                 };
 
                 await _projectRepository.AddAsync(project);
-                await _unitOfWork.SaveChangesAsync(); // ID generated here
+                await _unitOfWork.SaveChangesAsync();
 
                 var history = new ProjectStatusHistory
                 {
@@ -94,14 +96,23 @@ namespace ConstructionPM.Application.Services
 
                 await _unitOfWork.CommitAsync();
 
-                return project.Id;
+                return ApiResponse<int>.SuccessResponse(
+                    project.Id,
+                    "Project created successfully",
+                    201
+                );
             }
-            catch
+            catch (System.Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
-                throw;
+
+                return ApiResponse<int>.ErrorResponse(
+                    "Failed to create project",
+                    500
+                );
             }
         }
+
 
         public async Task<ApiResponse<object>> DeleteProjectAsync(int projectId, string Reason)
         {
@@ -226,39 +237,182 @@ namespace ConstructionPM.Application.Services
         }
 
 
-        public async Task<ApiResponse<ProjectDto>> GetByIdAsync(int id)
+        //public async Task<ApiResponse<ProjectDto>> GetByIdAsync(int id)
+        //{
+        //    if (id <= 0)
+        //        return ApiResponse<ProjectDto>.ErrorResponse("Invalid project ID");
+
+        //    try
+        //    {
+        //        var project = await _genericRepository.GetByIdAsync(id);
+
+        //        if (project == null)
+        //            return ApiResponse<ProjectDto>.ErrorResponse($"Project with ID {id} not found");
+
+        //        return ApiResponse<ProjectDto>.SuccessResponse(new ProjectDto
+        //        {
+        //            Id = project.Id,
+        //            Name = project.ProjectName,
+        //            Description = project.Description,
+        //            Status = project.Status.ToString(),
+        //            CreatedAt = project.CreatedAt,
+        //            CreatedByUserName = project.CreatedByUserName
+        //        });
+        //    }
+        //    catch (System.Exception)
+        //    {
+        //        return ApiResponse<ProjectDto>.ErrorResponse("An error occurred while retrieving the project");
+        //    }
+        //}
+
+
+
+        //public async Task<ApiResponse<object>> UpdateProjectAsync(
+        //int projectId,
+        //UpdateProjectDto dto
+        //)
+        //{
+        //    await _unitOfWork.BeginTransactionAsync();
+
+        //    try
+        //    {
+        //        var project = await _genericRepository.GetByIdAsync(projectId);
+        //        if (project == null)
+        //        {
+        //            await _unitOfWork.RollbackAsync();
+        //            return ApiResponse<object>.ErrorResponse("Project not found");
+        //        }
+        //        if (!IsValidStatusTransition(project.Status, dto.Status))
+        //        {
+        //            await _unitOfWork.RollbackAsync();
+        //            return ApiResponse<object>.ErrorResponse(
+        //                $"Invalid status transition from '{project.Status}' to '{dto.Status}'. " +
+        //                $"Status cannot revert from advanced states.");
+        //        }
+
+        //        var oldStatus = (ProjectStatus)project.Status;
+        //        var newStaus = dto.Status;
+
+        //        project.ProjectName = dto.ProjectName;
+        //        project.Description = dto.Description;
+        //        project.StartDate = dto.StartDate;
+        //        project.EndDate = dto.EndDate;
+        //        project.Status = newStaus;
+
+        //        await _genericRepository.UpdateAsync(project);
+
+        //        if (oldStatus != newStaus)
+        //        {
+        //            var history = new ProjectStatusHistory
+        //            {
+        //                ProjectId = project.Id,
+        //                Status = newStaus,
+        //                Remarks = dto.Remarks,
+        //            };
+        //            await _historyRepository.AddAsync(history);
+        //        }
+        //        await _unitOfWork.SaveChangesAsync();
+        //        await _unitOfWork.CommitAsync();
+
+        //        return ApiResponse<object>.SuccessResponse("Project updated successfully");
+        //    }
+        //    catch
+        //    {
+        //        await _unitOfWork.RollbackAsync();
+        //        return ApiResponse<object>.ErrorResponse("Unable to update project");
+
+        //    }
+        //}
+
+        //public async Task<ApiResponse<ProjectDto>> GetByIdAsync(int projectId, int userId)
+        //{
+        //    if (projectId <= 0 || userId <= 0)
+        //        return ApiResponse<ProjectDto>.ErrorResponse("Invalid project or user ID");
+
+        //    try
+        //    {
+        //        // 2. Verify user assigned to project (YOUR EXISTING METHOD!)
+        //        var projectUser = await _projectAssignmentQueryRepository.GetUserRoleInProjectAsync(projectId, userId);
+        //        if (projectUser == null)
+        //            return ApiResponse<ProjectDto>.ErrorResponse($"Project {projectId} not accessible to this client",403);
+
+        //        // 3. Get project and map to DTO
+        //        var project = await _genericRepository.GetByIdAsync(projectId);
+        //        if (project == null)
+        //            return ApiResponse<ProjectDto>.ErrorResponse($"Project with ID {projectId} not found");
+
+        //        return ApiResponse<ProjectDto>.SuccessResponse(new ProjectDto
+        //        {
+        //            Id = project.Id,
+        //            Name = project.ProjectName,
+        //            Description = project.Description,
+        //            Status = project.Status.ToString(),
+        //            CreatedAt = project.CreatedAt,
+        //            CreatedByUserName = project.CreatedByUserName
+        //        });
+        //    }
+        //    catch (System.Exception)
+        //    {
+        //        return ApiResponse<ProjectDto>.ErrorResponse("An error occurred while retrieving the project",200);
+        //    }
+        //}
+
+        public async Task<ApiResponse<ProjectDto>> GetByIdAsync(
+    int projectId,
+    int userId,
+    string role)
         {
-            if (id <= 0)
-                return ApiResponse<ProjectDto>.ErrorResponse("Invalid project ID");
+            if (projectId <= 0 || userId <= 0)
+                return ApiResponse<ProjectDto>
+                    .ErrorResponse("Invalid project or user ID", 400);
 
             try
             {
-                var project = await _genericRepository.GetByIdAsync(id);
+                // 🔐 Admin bypasses assignment check
+                if (!string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))
+                {
+                    var projectUser =
+                        await _projectAssignmentQueryRepository
+                            .GetUserRoleInProjectAsync(projectId, userId);
+
+                    if (projectUser == null)
+                        return ApiResponse<ProjectDto>
+                            .ErrorResponse("You are not assigned to this project", 403);
+                }
+
+                var project = await _projectQueryRepository
+                                .GetByIdDashboardAsync(projectId);
+
 
                 if (project == null)
-                    return ApiResponse<ProjectDto>.ErrorResponse($"Project with ID {id} not found");
+                    return ApiResponse<ProjectDto>
+                        .ErrorResponse($"Project with ID {projectId} not found", 404);
 
-                return ApiResponse<ProjectDto>.SuccessResponse(new ProjectDto
-                {
-                    Id = project.Id,
-                    Name = project.ProjectName,
-                    Description = project.Description,
-                    Status = project.Status.ToString(),
-                    CreatedAt = project.CreatedAt,
-                    CreatedByUserName = project.CreatedByUserName
-                });
+                return ApiResponse<ProjectDto>
+                            .SuccessResponse(project);
+
+                //return ApiResponse<ProjectDto>.SuccessResponse(new ProjectDto
+                //{
+                //    Id = project.Id,
+                //    Name = project.ProjectManagerName,
+                //    Description = project.Description,
+                //    Status = project.Status.ToString(),
+                //    CreatedAt = project.CreatedAt,
+                //    CreatedByUserName = project.CreatedByUserName,
+                //    ProjectManagerName = project.ProjectManagerName,
+                //    SiteEngineerName = project.SiteEngineerName
+                //});
             }
-            catch (System.Exception)
+            catch
             {
-                return ApiResponse<ProjectDto>.ErrorResponse("An error occurred while retrieving the project");
+                return ApiResponse<ProjectDto>
+                    .ErrorResponse("An error occurred while retrieving the project", 500);
             }
         }
 
-
         public async Task<ApiResponse<object>> UpdateProjectAsync(
-        int projectId,
-        UpdateProjectDto dto
-        )
+    int projectId,
+    UpdateProjectDto dto)
         {
             await _unitOfWork.BeginTransactionAsync();
 
@@ -270,47 +424,77 @@ namespace ConstructionPM.Application.Services
                     await _unitOfWork.RollbackAsync();
                     return ApiResponse<object>.ErrorResponse("Project not found");
                 }
-                if (!IsValidStatusTransition(project.Status, dto.Status))
+
+                var oldStatus = project.Status;
+
+                
+                if (dto.Status.HasValue &&
+                    !IsValidStatusTransition(project.Status, dto.Status.Value))
                 {
                     await _unitOfWork.RollbackAsync();
                     return ApiResponse<object>.ErrorResponse(
-                        $"Invalid status transition from '{project.Status}' to '{dto.Status}'. " +
-                        $"Status cannot revert from advanced states.");
+                        $"Invalid status transition from '{project.Status}' to '{dto.Status}'.");
                 }
 
-                var oldStatus = (ProjectStatus)project.Status;
-                var newStaus = dto.Status;
+                // Date validation (only if provided)
+                var effectiveStartDate = dto.StartDate ?? project.StartDate;
+                var effectiveEndDate = dto.EndDate ?? project.EndDate;
 
-                project.ProjectName = dto.ProjectName;
-                project.Description = dto.Description;
-                project.StartDate = dto.StartDate;
-                project.EndDate = dto.EndDate;
-                project.Status = newStaus;
+                if (effectiveEndDate.HasValue &&
+                    effectiveEndDate < effectiveStartDate)
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return ApiResponse<object>.ErrorResponse(
+                        "End date cannot be earlier than start date.");
+                }
+
+                // ---------------- SELECTIVE UPDATES ----------------
+
+                if (!string.IsNullOrWhiteSpace(dto.ProjectName))
+                    project.ProjectName = dto.ProjectName.Trim();
+
+                if (!string.IsNullOrWhiteSpace(dto.Description))
+                    project.Description = dto.Description.Trim();
+
+                if (dto.StartDate.HasValue)
+                    project.StartDate = dto.StartDate.Value;
+
+                if (dto.EndDate.HasValue)
+                    project.EndDate = dto.EndDate;
+
+                if (dto.Status.HasValue)
+                    project.Status = dto.Status.Value;
 
                 await _genericRepository.UpdateAsync(project);
 
-                if (oldStatus != newStaus)
+                // ---------------- STATUS HISTORY ----------------
+
+                if (dto.Status.HasValue && oldStatus != dto.Status.Value)
                 {
                     var history = new ProjectStatusHistory
                     {
                         ProjectId = project.Id,
-                        Status = newStaus,
-                        Remarks = dto.Remarks,
+                        Status = dto.Status.Value,
+                        Remarks = dto.Remarks
                     };
+
                     await _historyRepository.AddAsync(history);
                 }
+
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitAsync();
 
-                return ApiResponse<object>.SuccessResponse("Project updated successfully");
+                return ApiResponse<object>.SuccessResponse(
+                    "Project updated successfully");
             }
             catch
             {
                 await _unitOfWork.RollbackAsync();
-                return ApiResponse<object>.ErrorResponse("Unable to update project");
-
+                return ApiResponse<object>.ErrorResponse(
+                    "Unable to update project");
             }
         }
+
         private bool IsValidStatusTransition(ProjectStatus currentStatus, ProjectStatus newStatus)
         {
 

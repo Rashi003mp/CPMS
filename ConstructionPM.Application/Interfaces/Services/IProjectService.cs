@@ -9,9 +9,14 @@ namespace ConstructionPM.Application.Interfaces.Services
 {
     public interface IProjectService
     {
-        Task<int> CreateAsync(CreateProjectDto dto);
+        Task<ApiResponse<int>> CreateAsync(CreateProjectDto dto);
 
-        Task<ApiResponse<ProjectDto>> GetByIdAsync(int id);
+        Task<ApiResponse<ProjectDto>> GetByIdAsync(
+    int projectId,
+    int userId,
+    string role);
+
+        //Task<ApiResponse<ProjectDto>> GetByIdAsync(int projectId, int userId);
 
         //Task<IEnumerable<Project>>  GetAllAsync();
 

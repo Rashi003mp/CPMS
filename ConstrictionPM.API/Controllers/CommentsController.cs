@@ -41,11 +41,8 @@ namespace ConstructionPM.API.Controllers
                 Role=role,
             };
 
-            var result = await _commentService.CreateAsync(internalDto, traceId);
-
-            return result.Success
-                ? Ok(result)
-                : BadRequest(result);
+            var response = await _commentService.CreateAsync(internalDto, traceId);
+            return StatusCode(response.StatusCode, response);
         }
 
         // GET COMMENTS BY TASK

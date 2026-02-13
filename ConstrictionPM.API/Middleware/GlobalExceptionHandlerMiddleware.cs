@@ -37,45 +37,45 @@ namespace ConstructionPM.API.Middleware
             }
         }
 
-        private  Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
             context.Response.ContentType = "application/json";
 
             var (statusCode, message) = exception switch
             {
                 // Business / Domain exceptions
-                BusinessException => (HttpStatusCode.BadRequest, exception.Message),
+                BusinessException => ((int)HttpStatusCode.BadRequest, exception.Message),
 
                 // Application / infrastructure errors
                 ApplicationFailureException => (
-                    HttpStatusCode.InternalServerError,
+                    (int)HttpStatusCode.InternalServerError,
                     _env.IsDevelopment()
                         ? exception.Message
                         : "An internal server error occurred"
                 ),
 
                 // Validation exceptions
-                ArgumentNullException => (HttpStatusCode.BadRequest, $"Invalid input: {exception.Message}"),
-
-                ArgumentException => (HttpStatusCode.BadRequest, exception.Message),
+                ArgumentNullException => ((int)HttpStatusCode.BadRequest, $"Invalid input: {exception.Message}"),
+                ArgumentException => ((int)HttpStatusCode.BadRequest, exception.Message),
 
                 // Authentication / Authorization exceptions
-                UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "Unauthorized access"),
+                UnauthorizedAccessException => ((int)HttpStatusCode.Unauthorized, "Unauthorized access"),
 
-                //  not found exceptions
-                KeyNotFoundException => (HttpStatusCode.NotFound, "Resource not found"),
+                // Not found exceptions
+                KeyNotFoundException => ((int)HttpStatusCode.NotFound, "Resource not found"),
 
                 // Other exceptions
-                InvalidOperationException => (HttpStatusCode.BadRequest, exception.Message),
-                _ => (HttpStatusCode.InternalServerError, "An internal server error occurred")
+                InvalidOperationException => ((int)HttpStatusCode.BadRequest, exception.Message),
+                _ => ((int)HttpStatusCode.InternalServerError, "An internal server error occurred")
             };
 
-            context.Response.StatusCode = (int)statusCode;
+            context.Response.StatusCode = statusCode;
 
-            var response = ApiResponse.ErrorResponse(message,context.TraceIdentifier);
+            var response = ApiResponse.ErrorResponse(message, statusCode, context.TraceIdentifier);
             var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-            
+
             return context.Response.WriteAsJsonAsync(response, options);
         }
+
     }
 }

@@ -19,5 +19,7 @@ namespace ConstructionPM.Domain.Entities
 
         public ICollection<ProjectStatusHistory> StatusHistory { get; set; }
         = new List<ProjectStatusHistory>();
+
+
     }
 }

@@ -6,87 +6,93 @@ using ConstructionPM.Application.Interfaces.Services;
 using ConstructionPM.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using System.Security.Claims;
 
 namespace ConstructionPM.API.Controllers
 {
     [ApiController]
-    [Route("api/projects")]
-    [Authorize(Roles = "Admin,ProjectManager")]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "Admin,ProjectManager,Client")]  
     public class ProjectsController : ControllerBase
     {
         private readonly IProjectService _projectService;
+        private readonly IProjectUsersService _projectUserService;  
 
         public ProjectsController(IProjectService projectService, IProjectUsersService projectUserService)
         {
             _projectService = projectService;
+            _projectUserService = projectUserService;
         }
 
-        [HttpPost("Create")]
-        [Authorize(Roles = "Admin,ProjectManager")]
-        public async Task<IActionResult>
-            Create
-            (
-            CreateProjectDto dto
-            )
-
+        [HttpPost("create")]  // ✅ Fixed route name
+        public async Task<ActionResult<ApiResponse>> Create([FromBody] CreateProjectDto dto)
         {
-            var projectId = await _projectService.CreateAsync(dto);
-            var response = ApiResponse.SuccessResponse("Project created successfully");
-            return Ok(response);
-            ;
+
+
+            var response = await _projectService.CreateAsync(dto);  
+            return StatusCode(response.StatusCode, response);
         }
 
-        [HttpGet]
-        [Authorize(Roles = "Admin,ProjectManager")]
-        public async Task<ActionResult<ApiResponse<PaginatedResult<ProjectDto>>>>
-            GetAllProjects
-            (
-             [FromQuery] int page = 1,
-             [FromQuery] int pageSize = 10,
-             [FromQuery] string? search = null,
-             [FromQuery] ProjectStatus? status = null
-            )
+        [HttpGet]  // ✅ List projects
+        public async Task<ActionResult<ApiResponse<PaginatedResult<ProjectDto>>>> GetAllProjects(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? search = null,
+            [FromQuery] ProjectStatus? status = null)
         {
-            var result = await _projectService.GetAllAsync(page, pageSize, search, status);
-            return Ok(result);
+            var response = await _projectService.GetAllAsync(page, pageSize, search, status);
+            return StatusCode(response.StatusCode, response);
         }
 
-        [HttpGet]
-        [Authorize(Roles = "Admin,ProjectManager")]
-        [Route("{id}")]
-        public async Task<ActionResult<ApiResponse<ProjectDto>>> GetProjectById(int id)
+        [HttpGet("{id:int}")]
+        [Authorize(Roles = "Admin,ProjectManager,Client")]
+
+        public async Task<ActionResult<ApiResponse<ProjectDto>>> GetProjectById(
+            int id,
+            [FromQuery] int? userId = null)
         {
-            var project = await _projectService.GetByIdAsync(id);
-            if (project == null)
+            // 1️⃣ Get current user id from token
+            var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(currentUserIdStr, out int currentUserId) || currentUserId <= 0)
             {
-                return NotFound(project);
+                return Unauthorized(ApiResponse<ProjectDto>
+                    .ErrorResponse("Invalid user token", 401));
             }
-            return Ok(project);
+
+            // 2️⃣ Determine target user
+            int targetUserId = currentUserId;
+
+            if (User.IsInRole("Admin") && userId.HasValue)
+            {
+                targetUserId = userId.Value;
+            }
+            else if (userId.HasValue && userId != currentUserId) 
+            {
+                return StatusCode(403, ApiResponse<ProjectDto>
+                    .ErrorResponse("You are not allowed to access other users' projects", 403));
+            }
+
+            // 3️⃣ Pass role to service
+            var role = User.FindFirstValue(ClaimTypes.Role);
+
+            var response = await _projectService
+                .GetByIdAsync(id, targetUserId, role);
+
+            return StatusCode(response.StatusCode, response);
         }
 
-        [HttpPut("{id}")]
-        [Authorize(Roles = "Admin,ProjectManager")]
-        public async Task<IActionResult> UpdateProject(int id, [FromForm] UpdateProjectDto dto)
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<ApiResponse>> UpdateProject(int id, [FromBody] UpdateProjectDto dto) 
         {
-            var result = await _projectService.UpdateProjectAsync(id, dto);
-
-            if (!result.Success)
-                return NotFound(result);
-
-            return Ok(result);
+            var response = await _projectService.UpdateProjectAsync(id, dto);
+            return StatusCode(response.StatusCode, response);
         }
 
-        [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin,ProjectManager")]
-        public async Task<IActionResult> DeleteProject(int id, string Reason)
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult<ApiResponse>> DeleteProject(int id, [FromQuery] string reason) 
         {
-            var result = await _projectService.DeleteProjectAsync(id, Reason);
-
-            if (!result.Success)
-                return NotFound(result);
-
-            return Ok(result);
+            var response = await _projectService.DeleteProjectAsync(id, reason);
+            return StatusCode(response.StatusCode, response);
         }
     }
 }

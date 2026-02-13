@@ -34,36 +34,24 @@ namespace ConstructionPM.Application.Services
         // ---------------------------------------------------
         // CREATE COMMENT
         // ---------------------------------------------------
-        public async Task<ApiResponse<CommentResponseDto>> CreateAsync(
-            CreateCommentInternalDto dto,
-            string? traceId)
+        public async Task<ApiResponse<CommentResponseDto>> CreateAsync(CreateCommentInternalDto dto, string? traceId)
         {
             try
             {
                 // 1. Validate Task
                 var task = await _taskRepository.GetByIdAsync(dto.TaskId);
                 if (task == null || task.IsDeleted)
-                    return ApiResponse<CommentResponseDto>
-                        .ErrorResponse("Task not found", traceId);
+                    return ApiResponse<CommentResponseDto>.ErrorResponse("Task not found", 404, traceId);
 
-                // 2. Validate Project Membership
-                // Admin bypass
-                if (dto.Role == "Admin")
+                // 2. Validate Project Membership (Admin bypass)
+                if (dto.Role != "Admin")
                 {
-                    // allow without project membership
-                }
-                else
-                {
-                    var isProjectUser = await _projectUserRepository
-                        .IsUserAlreadyAssignedAsync(task.ProjectId, dto.UserId);
-
+                    var isProjectUser = await _projectUserRepository.IsUserAlreadyAssignedAsync(task.ProjectId, dto.UserId);
                     if (!isProjectUser)
-                        return ApiResponse<CommentResponseDto>
-                            .ErrorResponse("You are not a member of this project", traceId);
+                        return ApiResponse<CommentResponseDto>.ErrorResponse("You are not a member of this project", 403, traceId);
                 }
 
-
-                // 3. Create Comment (Tracked)
+                // 3. Create Comment
                 var comment = new Comment
                 {
                     TaskId = dto.TaskId,
@@ -74,10 +62,8 @@ namespace ConstructionPM.Application.Services
                     IsDeleted = false
                 };
 
-                // 4. Persist (SaveChanges happens INSIDE)
                 await _commentRepo.AddAsync(comment);
 
-                // 5. Response
                 return ApiResponse<CommentResponseDto>.SuccessResponse(
                     new CommentResponseDto
                     {
@@ -85,46 +71,30 @@ namespace ConstructionPM.Application.Services
                         TaskId = comment.TaskId,
                         Message = comment.CommentText
                     },
-                    "Comment added successfully",
-                    traceId
-                );
+                    "Comment added successfully", 201, traceId);  // 201 Created
             }
             catch (System.Exception)
             {
-                return ApiResponse<CommentResponseDto>
-                    .ErrorResponse("Unexpected error while creating comment", traceId);
+                return ApiResponse<CommentResponseDto>.ErrorResponse("Unexpected error while creating comment", 500, traceId);
             }
         }
 
-        // ---------------------------------------------------
-        // GET COMMENTS BY TASK
-        // ---------------------------------------------------
-        public async Task<ApiResponse<TaskCommentsResponseDto>> GetByTaskAsync(
-            int taskId,
-            int requestingUserId,
-            string? traceId,
-            string role)
+        public async Task<ApiResponse<TaskCommentsResponseDto>> GetByTaskAsync(int taskId, int requestingUserId, string? traceId, string role)
         {
             try
             {
                 var task = await _taskRepository.GetByIdAsync(taskId);
                 if (task == null || task.IsDeleted)
-                    return ApiResponse<TaskCommentsResponseDto>
-                        .ErrorResponse("Task not found", traceId);
+                    return ApiResponse<TaskCommentsResponseDto>.NotFound("Task not found", traceId);
 
                 // Admin can view all comments
-                if (role != "Admin" )
+                if (role != "Admin")
                 {
-                    var isProjectUser = await _projectUserRepository
-                        .IsUserAlreadyAssignedAsync(task.ProjectId, requestingUserId);
-
+                    var isProjectUser = await _projectUserRepository.IsUserAlreadyAssignedAsync(task.ProjectId, requestingUserId);
                     if (!isProjectUser)
-                        return ApiResponse<TaskCommentsResponseDto>
-                            .ErrorResponse("You are not a member of this project", traceId);
+                        return ApiResponse<TaskCommentsResponseDto>.ErrorResponse("You are not a member of this project", 403, traceId);
                 }
 
-
-                // READ-ONLY QUERY → AsNoTracking
                 var comments = await _commentRepository.GetByTaskIdAsync(taskId);
 
                 var response = new TaskCommentsResponseDto
@@ -135,79 +105,56 @@ namespace ConstructionPM.Application.Services
                         Id = c.Id,
                         TaskId = c.TaskId,
                         Message = c.CommentText,
-                        CreatedByUserId =(int) c.CreatedByUserId,
+                        CreatedByUserId = (int)c.CreatedByUserId,
                         CreatedByUserName = c.CreatedByUserName,
                         CreatedAt = c.CreatedAt
                     }).ToList()
                 };
-                ;
 
-                return ApiResponse<TaskCommentsResponseDto>.SuccessResponse(
-     response,
-     "Comments retrieved successfully",
-     traceId
- );
-
+                return ApiResponse<TaskCommentsResponseDto>.SuccessResponse(response, "Comments retrieved successfully", 200, traceId);
             }
             catch (System.Exception)
             {
-                return ApiResponse<TaskCommentsResponseDto>
-                    .ErrorResponse("Unexpected error while fetching comments", traceId);
+                return ApiResponse<TaskCommentsResponseDto>.ErrorResponse("Unexpected error while fetching comments", 500, traceId);
             }
         }
 
-        // ---------------------------------------------------
-        // DELETE COMMENT (SOFT DELETE)
-        // ---------------------------------------------------
-        public async Task<ApiResponse> DeleteAsync(
-            int commentId,
-            int requestingUserId,
-            string? traceId)
+        public async Task<ApiResponse> DeleteAsync(int commentId, int requestingUserId, string? traceId)
         {
             try
             {
-                // Tracked entity
                 var comment = await _commentRepo.GetByIdAsync(commentId);
                 if (comment == null)
-                    return ApiResponse.ErrorResponse("Comment not found", traceId);
+                    return ApiResponse.NotFound("Comment not found", traceId);
 
                 var task = await _taskRepository.GetByIdAsync(comment.TaskId);
                 if (task == null || task.IsDeleted)
-                    return ApiResponse.ErrorResponse("Task not found", traceId);
+                    return ApiResponse.ErrorResponse("Task not found", 404, traceId);
 
-                var projectUser = await _projectUserRepository
-                    .GetProjectUserAsync(task.ProjectId, requestingUserId);
-
+                var projectUser = await _projectUserRepository.GetProjectUserAsync(task.ProjectId, requestingUserId);
                 if (projectUser == null)
-                    return ApiResponse.ErrorResponse("Access denied", traceId);
+                    return ApiResponse.ErrorResponse("Access denied", 403, traceId);
 
                 var isOwner = comment.CreatedByUserId == requestingUserId;
                 var isProjectManager = projectUser.RoleId == Role.ProjectManager;
 
                 if (!isOwner && !isProjectManager)
-                    return ApiResponse.ErrorResponse(
-                        "You cannot delete this comment",
-                        traceId);
+                    return ApiResponse.ErrorResponse("You cannot delete this comment", 403, traceId);
 
-                // Soft delete (tracked entity)
+                // Soft delete
                 comment.IsDeleted = true;
                 comment.DeletedAt = DateTime.UtcNow;
                 comment.DeletedByUserId = requestingUserId;
-
-                // Save via UpdateAsync (entity already tracked, but safe)
                 await _commentRepo.UpdateAsync(comment);
 
-                return ApiResponse.SuccessResponse(
-                    "Comment deleted successfully",
-                    traceId);
+                return ApiResponse.SuccessResponse("Comment deleted successfully", 200, traceId);
             }
             catch (System.Exception)
             {
-                return ApiResponse.ErrorResponse(
-                    "Unexpected error while deleting comment",
-                    traceId);
+                return ApiResponse.ErrorResponse("Unexpected error while deleting comment", 500, traceId);
             }
         }
+
     }
 
 
