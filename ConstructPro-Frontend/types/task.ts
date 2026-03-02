@@ -28,7 +28,8 @@ export interface CreateTaskRequest {
 }
 
 export interface UpdateTaskRequest {
-  id: number
+  taskId: number
+  projectId: number
   title?: string
   description?: string
   assignedToUserId?: number

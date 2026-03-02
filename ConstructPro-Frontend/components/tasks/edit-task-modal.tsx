@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { tasksApi } from '@/lib/api/tasks'
+import { projectsApi } from '@/lib/api/projects'
 import { usersApi } from '@/lib/api/users'
 import { TaskStatus, type Task, type UpdateTaskRequest } from '@/types/task'
+import toast from 'react-hot-toast'
 import {
   Dialog,
   DialogContent,
@@ -59,17 +61,59 @@ export function EditTaskModal({ isOpen, onClose, task }: EditTaskModalProps) {
     })
   }, [task])
 
-  // Fetch users for assignment
-  const { data: usersData } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => usersApi.getAll(1, 100),
+  // Fetch project details to get assigned users
+  const { data: project } = useQuery({
+    queryKey: ['project', task.projectId.toString()],
+    queryFn: () => projectsApi.getById(task.projectId),
+    enabled: isOpen,
   })
+
+  // Fetch all users to get user IDs
+  const { data: allUsers } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => usersApi.getAll(),
+    enabled: isOpen,
+  })
+
+  // Build list of project users
+  const projectUsers = []
+  if (project && allUsers) {
+    // Add project manager
+    if (project.projectManagerName) {
+      const pmUser = allUsers.find(u => u.userName === project.projectManagerName)
+      if (pmUser) {
+        projectUsers.push({
+          id: pmUser.userId,
+          name: pmUser.userName,
+          role: 'Project Manager'
+        })
+      }
+    }
+    
+    // Add site engineers
+    if (project.siteEngineerName && project.siteEngineerName.length > 0) {
+      project.siteEngineerName.forEach(engineerName => {
+        const seUser = allUsers.find(u => u.userName === engineerName)
+        if (seUser) {
+          projectUsers.push({
+            id: seUser.userId,
+            name: seUser.userName,
+            role: 'Site Engineer'
+          })
+        }
+      })
+    }
+  }
 
   const updateMutation = useMutation({
     mutationFn: (data: UpdateTaskRequest) => tasksApi.update(data),
     onSuccess: () => {
+      toast.success('Task updated successfully')
+      // Invalidate all task-related queries
       queryClient.invalidateQueries({ queryKey: ['project-tasks'] })
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['all-tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['project'] })
       handleClose()
     },
     onError: (error: any) => {
@@ -106,7 +150,8 @@ export function EditTaskModal({ isOpen, onClose, task }: EditTaskModalProps) {
     if (!validate()) return
 
     updateMutation.mutate({
-      id: task.id,
+      taskId: task.id,
+      projectId: task.projectId,
       title: formData.title,
       description: formData.description,
       assignedToUserId: parseInt(formData.assignedToUserId),
@@ -117,7 +162,7 @@ export function EditTaskModal({ isOpen, onClose, task }: EditTaskModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="bg-slate-900 text-white border-slate-800">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit Task</DialogTitle>
         </DialogHeader>
@@ -134,7 +179,6 @@ export function EditTaskModal({ isOpen, onClose, task }: EditTaskModalProps) {
                 setFormData({ ...formData, title: e.target.value })
               }
               placeholder="Enter task title"
-              className="bg-slate-800 border-slate-700"
             />
             {errors.title && (
               <p className="text-sm text-red-500 mt-1">{errors.title}</p>
@@ -151,7 +195,6 @@ export function EditTaskModal({ isOpen, onClose, task }: EditTaskModalProps) {
               }
               placeholder="Enter task description"
               rows={3}
-              className="bg-slate-800 border-slate-700"
             />
           </div>
 
@@ -165,15 +208,21 @@ export function EditTaskModal({ isOpen, onClose, task }: EditTaskModalProps) {
                 setFormData({ ...formData, assignedToUserId: value })
               }
             >
-              <SelectTrigger className="bg-slate-800 border-slate-700">
-                <SelectValue placeholder="Select user" />
+              <SelectTrigger>
+                <SelectValue placeholder="Select project user" />
               </SelectTrigger>
-              <SelectContent>
-                {usersData?.data?.items?.map((user) => (
-                  <SelectItem key={user.id} value={user.id.toString()}>
-                    {user.name} - {user.email}
+              <SelectContent className="bg-white">
+                {projectUsers.length === 0 ? (
+                  <SelectItem value="none" disabled>
+                    No users assigned to this project
                   </SelectItem>
-                ))}
+                ) : (
+                  projectUsers.map((user) => (
+                    <SelectItem key={user.id} value={user.id.toString()}>
+                      {user.name} ({user.role})
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
             {errors.assignedToUserId && (
@@ -193,7 +242,6 @@ export function EditTaskModal({ isOpen, onClose, task }: EditTaskModalProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, dueDate: e.target.value })
                 }
-                className="bg-slate-800 border-slate-700"
               />
               {errors.dueDate && (
                 <p className="text-sm text-red-500 mt-1">{errors.dueDate}</p>
@@ -211,10 +259,10 @@ export function EditTaskModal({ isOpen, onClose, task }: EditTaskModalProps) {
                   })
                 }
               >
-                <SelectTrigger className="bg-slate-800 border-slate-700">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   {TASK_STATUS_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -235,14 +283,13 @@ export function EditTaskModal({ isOpen, onClose, task }: EditTaskModalProps) {
               variant="outline"
               onClick={handleClose}
               disabled={updateMutation.isPending}
-              className="border-slate-700"
             >
               Cancel
             </Button>
             <Button 
               type="submit" 
               disabled={updateMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               {updateMutation.isPending ? 'Updating...' : 'Update Task'}
             </Button>

@@ -7,17 +7,59 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { useProjects } from "@/lib/hooks/useProjects"
 import { CreateProjectModal } from "@/components/projects/create-project-modal"
-import { Plus, Search, Filter, Building2 } from "lucide-react"
+import { EditProjectModal } from "@/components/projects/edit-project-modal"
+import { Plus, Search, Filter, Building2, MoreVertical, Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { projectsApi } from "@/lib/api/projects"
+import toast from "react-hot-toast"
+import type { Project } from "@/types/project"
 
 export default function ProjectsPage() {
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState("")
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({})
   const pageSize = 10
+  const queryClient = useQueryClient()
 
   const { data, isLoading, error } = useProjects(page, pageSize, search)
+
+  // Delete project mutation
+  const deleteMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: number; reason: string }) =>
+      projectsApi.delete(id, reason),
+    onSuccess: () => {
+      toast.success('Project deleted successfully')
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Failed to delete project')
+    },
+  })
+
+  const handleDelete = (project: Project, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const reason = prompt(`Are you sure you want to delete "${project.name}"?\n\nPlease provide a reason:`)
+    if (reason && reason.trim()) {
+      deleteMutation.mutate({ id: project.id, reason: reason.trim() })
+    }
+  }
+
+  const handleEdit = (project: Project, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setEditingProject(project)
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -93,66 +135,103 @@ export default function ProjectsPage() {
         <>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {data.items.map((project) => (
-              <Link key={project.id} href={`/projects/${project.id}`}>
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full overflow-hidden">
-                  {/* Project Image */}
-                  <div className="relative h-48 bg-gray-200">
-                    {project.imageUrl && !imageErrors[project.id] ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
-                        src={project.imageUrl}
-                        alt={project.name}
-                        className="w-full h-full object-cover"
-                        onError={() =>
-                          setImageErrors((prev) => ({ ...prev, [project.id]: true }))
-                        }
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Building2 className="h-16 w-16 text-gray-400" />
-                      </div>
-                    )}
-                  </div>
+              <div key={project.id} className="relative group">
+                <Link href={`/projects/${project.id}`}>
+                  <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full overflow-hidden">
+                    {/* Project Image */}
+                    <div className="relative h-48 bg-gray-200">
+                      {project.imageUrl && !imageErrors[project.id] ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={project.imageUrl}
+                          alt={project.name}
+                          className="w-full h-full object-cover"
+                          onError={() =>
+                            setImageErrors((prev) => ({ ...prev, [project.id]: true }))
+                          }
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Building2 className="h-16 w-16 text-gray-400" />
+                        </div>
+                      )}
+                    </div>
 
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <CardTitle className="text-lg">{project.name}</CardTitle>
-                      <Badge className={getStatusColor(project.status)}>
-                        {project.status}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                      {project.description || "No description available"}
-                    </p>
-                    <div className="space-y-2 text-xs text-gray-500">
-                      {project.projectManagerName && (
-                        <div>
-                          <span className="font-medium">PM:</span>{" "}
-                          {project.projectManagerName}
-                        </div>
-                      )}
-                      {project.siteEngineerName && project.siteEngineerName.length > 0 && (
-                        <div>
-                          <span className="font-medium">Engineers:</span>{" "}
-                          {project.siteEngineerName.join(", ")}
-                        </div>
-                      )}
-                      <div>
-                        <span className="font-medium">Created:</span>{" "}
-                        {new Date(project.createdAt).toLocaleDateString()}
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <CardTitle className="text-lg">{project.name}</CardTitle>
+                        <Badge className={getStatusColor(project.status)}>
+                          {project.status}
+                        </Badge>
                       </div>
-                      {project.createdByUserName && (
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                        {project.description || "No description available"}
+                      </p>
+                      <div className="space-y-2 text-xs text-gray-500">
+                        {project.projectManagerName && (
+                          <div>
+                            <span className="font-medium">PM:</span>{" "}
+                            {project.projectManagerName}
+                          </div>
+                        )}
+                        {project.siteEngineerName && project.siteEngineerName.length > 0 && (
+                          <div>
+                            <span className="font-medium">Engineers:</span>{" "}
+                            {project.siteEngineerName.join(", ")}
+                          </div>
+                        )}
                         <div>
-                          <span className="font-medium">By:</span>{" "}
-                          {project.createdByUserName}
+                          <span className="font-medium">Created:</span>{" "}
+                          {new Date(project.createdAt).toLocaleDateString()}
                         </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+                        {project.createdByUserName && (
+                          <div>
+                            <span className="font-medium">By:</span>{" "}
+                            {project.createdByUserName}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+
+                {/* Dropdown Menu */}
+                <div className="absolute top-2 right-2 z-10">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 bg-white/90 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                        }}
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-white">
+                      <DropdownMenuItem
+                        onClick={(e) => handleEdit(project, e)}
+                        className="cursor-pointer hover:bg-gray-100"
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => handleDelete(project, e)}
+                        className="text-red-600 cursor-pointer hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
             ))}
           </div>
 
@@ -198,6 +277,15 @@ export default function ProjectsPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
       />
+
+      {/* Edit Project Modal */}
+      {editingProject && (
+        <EditProjectModal
+          isOpen={!!editingProject}
+          onClose={() => setEditingProject(null)}
+          project={editingProject}
+        />
+      )}
     </div>
   )
 }

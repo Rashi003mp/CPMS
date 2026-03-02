@@ -63,6 +63,7 @@ export default function ProjectDashboardPage() {
     queryKey: ['project-tasks', id],
     queryFn: () => tasksApi.getByProject(parseInt(id)),
     enabled: !!id,
+    refetchOnMount: 'always',
   })
 
   const project = projectData
