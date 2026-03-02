@@ -8,6 +8,7 @@ using ConstructionPM.Application.Interfaces.Repositories.Queries;
 using ConstructionPM.Application.Interfaces.Services;
 using ConstructionPM.Application.Interfaces.UoW;
 using ConstructionPM.Application.Services;
+using ConstructionPM.Application.Settings;
 using ConstructionPM.Application.Validators.Common;
 using ConstructionPM.Application.Validators.Implimentations;
 using ConstructionPM.Application.Validators.Interface;
@@ -19,6 +20,7 @@ using ConstructionPM.Infrastructure.Repositories;
 using ConstructionPM.Infrastructure.Repositories.Commands;
 using ConstructionPM.Infrastructure.Repositories.Quaries;
 using ConstructionPM.Infrastructure.Repositories.Queries;
+using ConstructionPM.Infrastructure.Services;
 using ConstructionPM.Infrastructure.UoW;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
@@ -93,6 +95,11 @@ namespace ConstructionPM.API.Extensions
             services.AddScoped<IUserProjectQuery, UserProjectQuery>();
             services.AddScoped<ITaskService, TaskService>();
             services.AddScoped<ICommentService, CommentService>();
+
+            // ---------- Cloudinary Image Upload ----------
+            services.Configure<CloudinarySettings>(
+                configuration.GetSection("Cloudinary"));
+            services.AddScoped<IImageUploadService, CloudinaryImageUploadService>();
 
             // ---- Factory ----
             services.AddScoped<IProjectUsersHistoryFactory, ProjectUsersHistoryFactory>();

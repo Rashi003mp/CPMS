@@ -14,9 +14,11 @@ namespace ConstructionPM.Application.DTOs.Projects.GetProjects
         public string Status { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public string? CreatedByUserName { get; set; }
-
         public string? ProjectManagerName { get; set; }
         public List<string>? SiteEngineerName { get; set; }
+        
+        // Image URL for display
+        public string? ImageUrl { get; set; }
     }
 
     public class PaginatedResult<T>

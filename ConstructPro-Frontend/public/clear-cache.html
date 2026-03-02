@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Cache - ConstructPro</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .success {
+            background: #10b981;
+            color: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 20px;
+            display: none;
+        }
+        .info {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 12px;
+            margin: 20px 0;
+        }
+        .step {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 ConstructPro Cache Cleaner</h1>
+        
+        <div class="info">
+            <strong>Why clear cache?</strong>
+            <p>If you're seeing incorrect role information (e.g., "Project Manager" for all users), clearing the cache will fix it.</p>
+        </div>
+
+        <h2>Quick Fix</h2>
+        <button onclick="clearAll()">Clear All Cache & Reload</button>
+
+        <div class="success" id="success">
+            ✅ Cache cleared successfully! Redirecting to login...
+        </div>
+
+        <h2>Manual Steps</h2>
+        <div class="step">
+            <strong>Step 1:</strong> Click the button above, OR
+        </div>
+        <div class="step">
+            <strong>Step 2:</strong> Press F12 to open Developer Console
+        </div>
+        <div class="step">
+            <strong>Step 3:</strong> Go to Console tab
+        </div>
+        <div class="step">
+            <strong>Step 4:</strong> Type: <code>localStorage.clear()</code> and press Enter
+        </div>
+        <div class="step">
+            <strong>Step 5:</strong> Press Ctrl+Shift+R to hard refresh
+        </div>
+        <div class="step">
+            <strong>Step 6:</strong> Login again
+        </div>
+
+        <h2>Test Credentials</h2>
+        <div class="info">
+            <strong>Admin:</strong><br>
+            Email: admin@gmail.com<br>
+            Password: Admin@123
+        </div>
+    </div>
+
+    <script>
+        function clearAll() {
+            // Clear all storage
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Clear cookies
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
+            // Show success message
+            document.getElementById('success').style.display = 'block';
+            
+            // Redirect to login after 2 seconds
+            setTimeout(function() {
+                window.location.href = '/login';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

@@ -17,6 +17,10 @@ namespace ConstructionPM.Domain.Entities
 
         public DateTime? EndDate { get; set; }
 
+        // Image fields - nullable to preserve existing data
+        public string? ImageUrl { get; set; }
+        public string? ImagePublicId { get; set; }
+
         public ICollection<ProjectStatusHistory> StatusHistory { get; set; }
         = new List<ProjectStatusHistory>();
 

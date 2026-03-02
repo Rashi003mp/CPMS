@@ -24,11 +24,9 @@ namespace ConstructionPM.API.Controllers
             _projectUserService = projectUserService;
         }
 
-        [HttpPost("create")]  // ✅ Fixed route name
-        public async Task<ActionResult<ApiResponse>> Create([FromBody] CreateProjectDto dto)
+        [HttpPost("create")]
+        public async Task<ActionResult<ApiResponse>> Create([FromForm] CreateProjectDto dto)
         {
-
-
             var response = await _projectService.CreateAsync(dto);  
             return StatusCode(response.StatusCode, response);
         }
@@ -82,7 +80,7 @@ namespace ConstructionPM.API.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<ApiResponse>> UpdateProject(int id, [FromBody] UpdateProjectDto dto) 
+        public async Task<ActionResult<ApiResponse>> UpdateProject(int id, [FromForm] UpdateProjectDto dto) 
         {
             var response = await _projectService.UpdateProjectAsync(id, dto);
             return StatusCode(response.StatusCode, response);

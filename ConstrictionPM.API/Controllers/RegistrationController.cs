@@ -17,7 +17,7 @@ namespace ConstructionPM.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register([FromForm] RegistrationRequestDto request)
+        public async Task<IActionResult> Register([FromBody] RegistrationRequestDto request)
         {
             await _service.RegisterAsync(request);
             var response = ApiResponse.SuccessResponse("Registration request submitted");

@@ -17,8 +17,6 @@ namespace ConstructionPM.Application.Services
     public class ProjectService : IProjectService
     {
         private readonly ILogger<ProjectService> _logger;
-
-
         private readonly IProjectCommandRepository _projectRepository;
         private readonly IProjectQueryRepository _projectQueryRepository;
         private readonly IProjectQueryRepository _ProjectQueryRepository;
@@ -27,7 +25,7 @@ namespace ConstructionPM.Application.Services
         private readonly IGenericRepository<Project> _genericRepository;
         private readonly IGenericRepository<ProjectUsers> _ProjectUsersRepository;
         private readonly IProjectAssignmentQueryRepository _projectAssignmentQueryRepository;
-
+        private readonly IImageUploadService _imageUploadService;
 
         public ProjectService(
             IProjectCommandRepository projectRepository,
@@ -38,7 +36,8 @@ namespace ConstructionPM.Application.Services
             ILogger<ProjectService> logger,
             IGenericRepository<ProjectUsers> ProjectUsersRepository,
             IProjectQueryRepository projectQueryRepository,
-            IProjectAssignmentQueryRepository projectAssignmentQuery
+            IProjectAssignmentQueryRepository projectAssignmentQuery,
+            IImageUploadService imageUploadService
             )
         {
             _projectRepository = projectRepository;
@@ -50,6 +49,7 @@ namespace ConstructionPM.Application.Services
             _ProjectUsersRepository = ProjectUsersRepository;
             _projectQueryRepository = ProjectQueryRepository;
             _projectAssignmentQueryRepository = projectAssignmentQuery;
+            _imageUploadService = imageUploadService;
         }
 
         public async Task<ApiResponse<int>> CreateAsync(CreateProjectDto dto)
@@ -73,13 +73,35 @@ namespace ConstructionPM.Application.Services
 
             try
             {
+                string? imageUrl = null;
+                string? imagePublicId = null;
+
+                // Upload image if provided
+                if (dto.Image != null)
+                {
+                    try
+                    {
+                        var uploadResult = await _imageUploadService.UploadImageAsync(dto.Image);
+                        imageUrl = uploadResult.Url;
+                        imagePublicId = uploadResult.PublicId;
+                    }
+                    catch (System.Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to upload project image");
+                        await _unitOfWork.RollbackAsync();
+                        return ApiResponse<int>.ErrorResponse("Failed to upload project image", 500);
+                    }
+                }
+
                 var project = new Project
                 {
                     ProjectName = dto.ProjectName,
                     Description = dto.Description,
                     StartDate = dto.StartDate,
                     EndDate = dto.EndDate,
-                    Status = dto.Status
+                    Status = dto.Status,
+                    ImageUrl = imageUrl,
+                    ImagePublicId = imagePublicId
                 };
 
                 await _projectRepository.AddAsync(project);
@@ -105,7 +127,7 @@ namespace ConstructionPM.Application.Services
             catch (System.Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
-
+                _logger.LogError(ex, "Failed to create project");
                 return ApiResponse<int>.ErrorResponse(
                     "Failed to create project",
                     500
@@ -132,6 +154,20 @@ namespace ConstructionPM.Application.Services
                     return ApiResponse<object>.ErrorResponse("Project not found");
                 }
 
+                // Delete image from Cloudinary if exists
+                if (!string.IsNullOrEmpty(project.ImagePublicId))
+                {
+                    try
+                    {
+                        await _imageUploadService.DeleteImageAsync(project.ImagePublicId);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to delete image from Cloudinary for project {ProjectId}", projectId);
+                        // Continue with project deletion even if image deletion fails
+                    }
+                }
+
                 var projectUsers = await _ProjectUsersRepository.GetAllAsync();
 
                 Console.WriteLine("Project Users Count: " + projectUsers);
@@ -150,7 +186,6 @@ namespace ConstructionPM.Application.Services
                 {
                     users.Action = ProjectRoleActions.Removed.ToString();
                     users.Reason = Reason;
-
                 }
 
                 project.Status = ProjectStatus.Deleted;
@@ -174,7 +209,6 @@ namespace ConstructionPM.Application.Services
                 await _unitOfWork.RollbackAsync();
                 return ApiResponse<object>.ErrorResponse("Unable to delete project");
             }
-
         }
 
         public async Task<ApiResponse<PaginatedResult<ProjectDto>>> GetAllAsync
@@ -214,7 +248,8 @@ namespace ConstructionPM.Application.Services
                         Description = p.Description,
                         Status = p.Status.ToString(),
                         CreatedAt = p.CreatedAt,
-                        CreatedByUserName = p.CreatedByUserName
+                        CreatedByUserName = p.CreatedByUserName,
+                        ImageUrl = p.ImageUrl
                     })
                     .ToList();
 
@@ -427,7 +462,6 @@ namespace ConstructionPM.Application.Services
 
                 var oldStatus = project.Status;
 
-                
                 if (dto.Status.HasValue &&
                     !IsValidStatusTransition(project.Status, dto.Status.Value))
                 {
@@ -446,6 +480,56 @@ namespace ConstructionPM.Application.Services
                     await _unitOfWork.RollbackAsync();
                     return ApiResponse<object>.ErrorResponse(
                         "End date cannot be earlier than start date.");
+                }
+
+                // ---------------- IMAGE HANDLING ----------------
+
+                // Handle image removal
+                if (dto.RemoveImage && !string.IsNullOrEmpty(project.ImagePublicId))
+                {
+                    try
+                    {
+                        await _imageUploadService.DeleteImageAsync(project.ImagePublicId);
+                        project.ImageUrl = null;
+                        project.ImagePublicId = null;
+                    }
+                    catch (System.Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to delete image from Cloudinary");
+                        // Continue with update even if image deletion fails
+                    }
+                }
+
+                // Handle new image upload
+                if (dto.Image != null)
+                {
+                    // Delete old image if exists
+                    if (!string.IsNullOrEmpty(project.ImagePublicId))
+                    {
+                        try
+                        {
+                            await _imageUploadService.DeleteImageAsync(project.ImagePublicId);
+                        }
+                        catch (System.Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to delete old image from Cloudinary");
+                            // Continue with new upload
+                        }
+                    }
+
+                    // Upload new image
+                    try
+                    {
+                        var uploadResult = await _imageUploadService.UploadImageAsync(dto.Image);
+                        project.ImageUrl = uploadResult.Url;
+                        project.ImagePublicId = uploadResult.PublicId;
+                    }
+                    catch (System.Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to upload new project image");
+                        await _unitOfWork.RollbackAsync();
+                        return ApiResponse<object>.ErrorResponse("Failed to upload new project image", 500);
+                    }
                 }
 
                 // ---------------- SELECTIVE UPDATES ----------------
