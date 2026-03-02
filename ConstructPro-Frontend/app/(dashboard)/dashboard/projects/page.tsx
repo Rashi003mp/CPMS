@@ -93,7 +93,7 @@ export default function ProjectsPage() {
         <>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {data.items.map((project) => (
-              <Link key={project.id} href={`/dashboard/projects/${project.id}`}>
+              <Link key={project.id} href={`/projects/${project.id}`}>
                 <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full overflow-hidden">
                   {/* Project Image */}
                   <div className="relative h-48 bg-gray-200">

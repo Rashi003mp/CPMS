@@ -25,7 +25,7 @@ export const projectsApi = {
     if (status !== undefined) params.append('status', status.toString())
     
     const response = await apiClient.get<ApiResponse<PaginatedProjects>>(
-      `/projects?${params.toString()}`
+      `/Projects?${params.toString()}`
     )
     return response.data.data!
   },
@@ -34,7 +34,7 @@ export const projectsApi = {
   getById: async (id: number, userId?: number): Promise<Project> => {
     const params = userId ? `?userId=${userId}` : ''
     const response = await apiClient.get<ApiResponse<Project>>(
-      `/projects/${id}${params}`
+      `/Projects/${id}${params}`
     )
     return response.data.data!
   },
@@ -52,7 +52,7 @@ export const projectsApi = {
       formData.append('image', data.image)
 
       const response = await apiClient.post<ApiResponse<number>>(
-        '/projects/create',
+        '/Projects/create',
         formData,
         {
           headers: {
@@ -63,7 +63,7 @@ export const projectsApi = {
       return response.data.data!
     } else {
       const response = await apiClient.post<ApiResponse<number>>(
-        '/projects/create',
+        '/Projects/create',
         data
       )
       return response.data.data!
@@ -84,18 +84,18 @@ export const projectsApi = {
       if (data.image) formData.append('image', data.image)
       if (data.removeImage) formData.append('removeImage', 'true')
 
-      await apiClient.put<ApiResponse>(`/projects/${id}`, formData, {
+      await apiClient.put<ApiResponse>(`/Projects/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       })
     } else {
-      await apiClient.put<ApiResponse>(`/projects/${id}`, data)
+      await apiClient.put<ApiResponse>(`/Projects/${id}`, data)
     }
   },
 
   // Delete project
   delete: async (id: number, reason: string): Promise<void> => {
-    await apiClient.delete<ApiResponse>(`/projects/${id}?reason=${encodeURIComponent(reason)}`)
+    await apiClient.delete<ApiResponse>(`/Projects/${id}?reason=${encodeURIComponent(reason)}`)
   },
 }
