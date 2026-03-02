@@ -68,7 +68,10 @@ namespace ConstructionPM.Infrastructure.Repositories.Quaries
                 p.Status,
                 p.CreatedAt,
                 p.CreatedByUserName,
+                p.ImageUrl,
+                p.ImagePublicId,
                 pu.RoleId,
+                pu.AssignedUserId,
                 pu.AssignedUserName
             FROM Projects p
             LEFT JOIN ProjectUsers pu ON pu.ProjectId = p.Id
@@ -89,16 +92,24 @@ namespace ConstructionPM.Infrastructure.Repositories.Quaries
                 Status = firstRow.Status.ToString(),
                 CreatedAt = firstRow.CreatedAt,
                 CreatedByUserName = firstRow.CreatedByUserName,
-                SiteEngineerName = new List<string>()
+                ImageUrl = firstRow.ImageUrl,
+                SiteEngineerName = new List<string>(),
+                SiteEngineerId = new List<int>()
             };
 
             foreach (var row in result)
             {
                 if (row.RoleId == (int)Role.ProjectManager)
+                {
                     dto.ProjectManagerName = row.AssignedUserName;
+                    dto.ProjectManagerId = row.AssignedUserId;
+                }
 
                 if (row.RoleId == (int)Role.SiteEngineer)
+                {
                     dto.SiteEngineerName.Add(row.AssignedUserName);
+                    dto.SiteEngineerId.Add(row.AssignedUserId);
+                }
             }
 
             return dto;

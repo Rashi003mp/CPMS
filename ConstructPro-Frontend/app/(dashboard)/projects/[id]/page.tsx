@@ -20,15 +20,36 @@ import { formatDate } from '@/lib/helpers/date'
 import { CreateTaskModal } from '@/components/tasks/create-task-modal'
 import { TaskCard } from '@/components/tasks/task-card'
 import { LiveActivityFeed } from '@/components/projects/live-activity-feed'
+import { AssignUsersModal } from '@/components/projects/assign-users-modal'
+import { ReplaceUserModal } from '@/components/projects/replace-user-modal'
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { MoreVertical, UserX, RefreshCw } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { projectUsersApi } from '@/lib/api/project-users'
+import { usersApi } from '@/lib/api/users'
+import toast from 'react-hot-toast'
 
 export default function ProjectDashboardPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false)
+  const [isAssignUsersOpen, setIsAssignUsersOpen] = useState(false)
   const [selectedFilter, setSelectedFilter] = useState<string>('ALL')
+  const [replaceUserData, setReplaceUserData] = useState<{
+    userId: number
+    userName: string
+    roleId: number
+    roleName: string
+  } | null>(null)
+  const queryClient = useQueryClient()
 
   // Fetch project details
   const { data: projectData, isLoading: projectLoading, error: projectError } = useQuery({
@@ -46,6 +67,71 @@ export default function ProjectDashboardPage() {
 
   const project = projectData
   const tasks = tasksData || []
+
+  // Unassign user mutation
+  const unassignMutation = useMutation({
+    mutationFn: ({ userId, roleId, reason }: { userId: number; roleId: number; reason: string }) =>
+      projectUsersApi.unassignUser({
+        projectId: parseInt(id),
+        userId,
+        roleId,
+        reason,
+      }),
+    onSuccess: () => {
+      toast.success('User unassigned successfully')
+      queryClient.invalidateQueries({ queryKey: ['project', id] })
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Failed to unassign user')
+    },
+  })
+
+  const handleUnassign = async (userId: number, userName: string, roleId: number) => {
+    // If userId is 0 (not available from backend), fetch it from users list
+    let actualUserId = userId
+    if (userId === 0) {
+      try {
+        const users = await usersApi.getAll()
+        const user = users.find(u => u.userName === userName)
+        if (user) {
+          actualUserId = user.userId
+        } else {
+          toast.error('Could not find user ID. Please restart the backend.')
+          return
+        }
+      } catch (error) {
+        toast.error('Failed to fetch user information')
+        return
+      }
+    }
+
+    const reason = prompt(`Please provide a reason for unassigning ${userName}:`)
+    if (reason && reason.trim()) {
+      unassignMutation.mutate({ userId: actualUserId, roleId, reason: reason.trim() })
+    }
+  }
+
+  const handleReplace = async (userId: number, userName: string, roleId: number, roleName: string) => {
+    // If userId is 0 (not available from backend), fetch it from users list
+    let actualUserId = userId
+    if (userId === 0) {
+      try {
+        const users = await usersApi.getAll()
+        const user = users.find(u => u.userName === userName)
+        if (user) {
+          actualUserId = user.userId
+        } else {
+          toast.error('Could not find user ID. Please restart the backend.')
+          return
+        }
+      } catch (error) {
+        toast.error('Failed to fetch user information')
+        return
+      }
+    }
+
+    setReplaceUserData({ userId: actualUserId, userName, roleId, roleName })
+  }
 
   // Calculate project statistics
   const totalTasks = tasks.length
@@ -223,33 +309,112 @@ export default function ProjectDashboardPage() {
           <div className="col-span-3 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm font-semibold text-gray-600 flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  KEY PERSONNEL
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-semibold text-gray-600 flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    KEY PERSONNEL
+                  </CardTitle>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setIsAssignUsersOpen(true)}
+                    className="h-8 w-8 p-0"
+                    title="Assign User"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {project.projectManagerName && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-                      {project.projectManagerName.split(' ').map(n => n[0]).join('')}
+                  <div className="flex items-center justify-between gap-3 group">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                        {project.projectManagerName.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-gray-900 truncate">{project.projectManagerName}</div>
+                        <div className="text-sm text-gray-600">Project Manager</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-medium text-gray-900">{project.projectManagerName}</div>
-                      <div className="text-sm text-gray-600">Project Manager</div>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-white">
+                        <DropdownMenuItem
+                          onClick={() => handleReplace(
+                            project.projectManagerId || 0,
+                            project.projectManagerName!,
+                            1,
+                            'Project Manager'
+                          )}
+                          className="cursor-pointer hover:bg-gray-100"
+                        >
+                          <RefreshCw className="w-4 h-4 mr-2" />
+                          Replace
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleUnassign(
+                            project.projectManagerId || 0,
+                            project.projectManagerName!,
+                            1
+                          )}
+                          className="text-red-600 cursor-pointer hover:bg-red-50"
+                        >
+                          <UserX className="w-4 h-4 mr-2" />
+                          Unassign
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 )}
 
                 {project.siteEngineerName?.map((engineer, idx) => (
-                  <div key={idx} className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-white font-semibold">
-                      {engineer.split(' ').map(n => n[0]).join('')}
+                  <div key={idx} className="flex items-center justify-between gap-3 group">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                        {engineer.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-gray-900 truncate">{engineer}</div>
+                        <div className="text-sm text-gray-600">Site Engineer</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-medium text-gray-900">{engineer}</div>
-                      <div className="text-sm text-gray-600">Site Engineer</div>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-white">
+                        <DropdownMenuItem
+                          onClick={() => handleReplace(
+                            project.siteEngineerId?.[idx] || 0,
+                            engineer,
+                            2,
+                            'Site Engineer'
+                          )}
+                          className="cursor-pointer hover:bg-gray-100"
+                        >
+                          <RefreshCw className="w-4 h-4 mr-2" />
+                          Replace
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleUnassign(
+                            project.siteEngineerId?.[idx] || 0,
+                            engineer,
+                            2
+                          )}
+                          className="text-red-600 cursor-pointer hover:bg-red-50"
+                        >
+                          <UserX className="w-4 h-4 mr-2" />
+                          Unassign
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 ))}
 
@@ -325,6 +490,24 @@ export default function ProjectDashboardPage() {
         onClose={() => setIsCreateTaskOpen(false)}
         projectId={parseInt(id)}
       />
+
+      <AssignUsersModal
+        isOpen={isAssignUsersOpen}
+        onClose={() => setIsAssignUsersOpen(false)}
+        projectId={parseInt(id)}
+      />
+
+      {replaceUserData && (
+        <ReplaceUserModal
+          isOpen={true}
+          onClose={() => setReplaceUserData(null)}
+          projectId={parseInt(id)}
+          oldUserId={replaceUserData.userId}
+          oldUserName={replaceUserData.userName}
+          roleId={replaceUserData.roleId}
+          roleName={replaceUserData.roleName}
+        />
+      )}
     </div>
   )
 }

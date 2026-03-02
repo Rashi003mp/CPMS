@@ -15,7 +15,9 @@ namespace ConstructionPM.Application.DTOs.Projects.GetProjects
         public DateTime CreatedAt { get; set; }
         public string? CreatedByUserName { get; set; }
         public string? ProjectManagerName { get; set; }
+        public int? ProjectManagerId { get; set; }
         public List<string>? SiteEngineerName { get; set; }
+        public List<int>? SiteEngineerId { get; set; }
         
         // Image URL for display
         public string? ImageUrl { get; set; }

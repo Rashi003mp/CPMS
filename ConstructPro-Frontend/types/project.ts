@@ -14,7 +14,9 @@ export interface Project {
   createdAt: string
   createdByUserName?: string
   projectManagerName?: string
+  projectManagerId?: number
   siteEngineerName?: string[]
+  siteEngineerId?: number[]
   imageUrl?: string // NEW: Image URL from Cloudinary
 }
 
