@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { useProjects } from "@/lib/hooks/useProjects"
+import { useAuthStore } from "@/store/authStore"
 import { CreateProjectModal } from "@/components/projects/create-project-modal"
 import { EditProjectModal } from "@/components/projects/edit-project-modal"
 import { Plus, Search, Filter, Building2, MoreVertical, Edit, Trash2 } from "lucide-react"
@@ -29,8 +30,19 @@ export default function ProjectsPage() {
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({})
   const pageSize = 10
   const queryClient = useQueryClient()
+  
+  // Get current user from auth store
+  const { user } = useAuthStore()
+  const isClient = user?.roleId === 3
 
-  const { data, isLoading, error } = useProjects(page, pageSize, search)
+  // For clients, fetch only their projects; for others, fetch all projects
+  const { data, isLoading, error } = useProjects(
+    page, 
+    pageSize, 
+    search, 
+    undefined, 
+    isClient ? user?.id : undefined
+  )
 
   // Delete project mutation
   const deleteMutation = useMutation({
@@ -83,13 +95,18 @@ export default function ProjectsPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
           <p className="text-gray-500 mt-1">
-            Manage and track all your construction projects
+            {isClient 
+              ? "View your assigned construction projects"
+              : "Manage and track all your construction projects"
+            }
           </p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Project
-        </Button>
+        {!isClient && (
+          <Button onClick={() => setIsCreateModalOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Project
+          </Button>
+        )}
       </div>
 
       {/* Search and Filters */}
@@ -197,40 +214,42 @@ export default function ProjectsPage() {
                   </Card>
                 </Link>
 
-                {/* Dropdown Menu */}
-                <div className="absolute top-2 right-2 z-10">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 bg-white/90 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          e.stopPropagation()
-                        }}
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-white">
-                      <DropdownMenuItem
-                        onClick={(e) => handleEdit(project, e)}
-                        className="cursor-pointer hover:bg-gray-100"
-                      >
-                        <Edit className="w-4 h-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={(e) => handleDelete(project, e)}
-                        className="text-red-600 cursor-pointer hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                {/* Dropdown Menu - Only for non-clients */}
+                {!isClient && (
+                  <div className="absolute top-2 right-2 z-10">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 bg-white/90 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                          }}
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-white">
+                        <DropdownMenuItem
+                          onClick={(e) => handleEdit(project, e)}
+                          className="cursor-pointer hover:bg-gray-100"
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => handleDelete(project, e)}
+                          className="text-red-600 cursor-pointer hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
               </div>
             ))}
           </div>

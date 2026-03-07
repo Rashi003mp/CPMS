@@ -16,6 +16,7 @@ namespace ConstructionPM.Application.Interfaces.Repositories.Queries
         Task<ProjectUsers?> GetUserRoleInProjectAsync(int projectId, int userId);
 
         Task<ProjectUsers?> GetProjectUserAsync(int projectId, int userId);
+        Task<List<int>> GetProjectIdsByUserIdAsync(int userId);
 
     }
 }

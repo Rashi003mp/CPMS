@@ -42,6 +42,34 @@ namespace ConstructionPM.API.Controllers
             return StatusCode(response.StatusCode, response);
         }
 
+        [HttpGet("user/{userId:int}")]
+        [Authorize(Roles = "Admin,ProjectManager,Client")]
+        public async Task<ActionResult<ApiResponse<PaginatedResult<ProjectDto>>>> GetProjectsByUserId(
+            int userId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? search = null,
+            [FromQuery] ProjectStatus? status = null)
+        {
+            // Get current user id from token
+            var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(currentUserIdStr, out int currentUserId) || currentUserId <= 0)
+            {
+                return Unauthorized(ApiResponse<PaginatedResult<ProjectDto>>
+                    .ErrorResponse("Invalid user token", 401));
+            }
+
+            // Only allow users to see their own projects unless they're Admin
+            if (!User.IsInRole("Admin") && userId != currentUserId)
+            {
+                return StatusCode(403, ApiResponse<PaginatedResult<ProjectDto>>
+                    .ErrorResponse("You are not allowed to access other users' projects", 403));
+            }
+
+            var response = await _projectService.GetProjectsByUserIdAsync(userId, page, pageSize, search, status);
+            return StatusCode(response.StatusCode, response);
+        }
+
         [HttpGet("{id:int}")]
         [Authorize(Roles = "Admin,ProjectManager,Client")]
 

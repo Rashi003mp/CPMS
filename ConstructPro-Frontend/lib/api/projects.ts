@@ -30,6 +30,28 @@ export const projectsApi = {
     return response.data.data!
   },
 
+  // Get projects by user ID (for clients)
+  getByUserId: async (
+    userId: number,
+    page: number = 1,
+    pageSize: number = 10,
+    search?: string,
+    status?: ProjectStatus
+  ): Promise<PaginatedProjects> => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      pageSize: pageSize.toString(),
+    })
+    
+    if (search) params.append('search', search)
+    if (status !== undefined) params.append('status', status.toString())
+    
+    const response = await apiClient.get<ApiResponse<PaginatedProjects>>(
+      `/Projects/user/${userId}?${params.toString()}`
+    )
+    return response.data.data!
+  },
+
   // Get project by ID
   getById: async (id: number, userId?: number): Promise<Project> => {
     const params = userId ? `?userId=${userId}` : ''

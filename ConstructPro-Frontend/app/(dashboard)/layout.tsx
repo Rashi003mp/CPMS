@@ -43,22 +43,28 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     router.push("/login")
   }
 
-  const navigation = [
+  // Check user role
+  const isAdmin = user?.roleId === 0
+  const isClient = user?.roleId === 3
+  
+  // Base navigation for all users
+  const baseNavigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Projects", href: "/dashboard/projects", icon: FolderKanban },
+  ]
+  
+  // Additional navigation for non-client users
+  const extendedNavigation = !isClient ? [
     { name: "Tasks", href: "/dashboard/tasks", icon: CheckSquare },
     { name: "Users", href: "/dashboard/users", icon: Users },
-  ]
-
-  // Check if user is admin (roleId === 0)
-  const isAdmin = user?.roleId === 0
+  ] : []
   
-  // Add admin-only navigation
+  // Admin-only navigation
   const adminNavigation = isAdmin ? [
     { name: "Approvals", href: "/dashboard/admin/approvals", icon: CheckSquare },
   ] : []
 
-  const allNavigation = [...navigation, ...adminNavigation]
+  const allNavigation = [...baseNavigation, ...extendedNavigation, ...adminNavigation]
 
   return (
     <div className="min-h-screen bg-gray-50">

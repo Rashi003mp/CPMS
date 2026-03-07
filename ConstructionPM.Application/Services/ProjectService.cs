@@ -594,6 +594,88 @@ namespace ConstructionPM.Application.Services
             };
         }
 
+        public async Task<ApiResponse<PaginatedResult<ProjectDto>>> GetProjectsByUserIdAsync(
+            int userId,
+            int page,
+            int pageSize,
+            string? search,
+            ProjectStatus? status)
+        {
+            try
+            {
+                if (userId <= 0)
+                    return ApiResponse<PaginatedResult<ProjectDto>>.ErrorResponse("Invalid user ID", 400);
+
+                page = Math.Max(1, page);
+                pageSize = Math.Clamp(pageSize, 1, 100);
+
+                // Get project IDs assigned to the user
+                var projectIds = await _projectAssignmentQueryRepository.GetProjectIdsByUserIdAsync(userId);
+
+                if (!projectIds.Any())
+                {
+                    return ApiResponse<PaginatedResult<ProjectDto>>.SuccessResponse(
+                        new PaginatedResult<ProjectDto>
+                        {
+                            Items = new List<ProjectDto>(),
+                            TotalCount = 0,
+                            Page = page,
+                            PageSize = pageSize
+                        });
+                }
+
+                // Get all projects for those IDs
+                var allProjects = await _ProjectQueryRepository.GetAllAsync();
+                var projects = allProjects.Where(p => projectIds.Contains(p.Id)).ToList();
+
+                // Apply search filter
+                if (!string.IsNullOrWhiteSpace(search))
+                    projects = projects.Where(p =>
+                        p.ProjectName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                        (!string.IsNullOrEmpty(p.Description) &&
+                         p.Description.Contains(search, StringComparison.OrdinalIgnoreCase)))
+                        .ToList();
+
+                // Apply status filter
+                if (status.HasValue)
+                    projects = projects.Where(p => p.Status == status.Value).ToList();
+
+                var totalCount = projects.Count;
+
+                // Paginate
+                var paginated = projects
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(p => new ProjectDto
+                    {
+                        Id = p.Id,
+                        Name = p.ProjectName,
+                        Description = p.Description,
+                        Status = p.Status.ToString(),
+                        CreatedAt = p.CreatedAt,
+                        CreatedByUserName = p.CreatedByUserName,
+                        ImageUrl = p.ImageUrl
+                    })
+                    .ToList();
+
+                return ApiResponse<PaginatedResult<ProjectDto>>.SuccessResponse(
+                    new PaginatedResult<ProjectDto>
+                    {
+                        Items = paginated,
+                        TotalCount = totalCount,
+                        Page = page,
+                        PageSize = pageSize
+                    });
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex, "Error while fetching projects for user {UserId}", userId);
+
+                return ApiResponse<PaginatedResult<ProjectDto>>.ErrorResponse(
+                    "An unexpected error occurred while fetching projects.");
+            }
+        }
+
     }
 
 }

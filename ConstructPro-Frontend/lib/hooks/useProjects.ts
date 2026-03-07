@@ -10,11 +10,17 @@ export function useProjects(
   page: number = 1,
   pageSize: number = 10,
   search?: string,
-  status?: ProjectStatus
+  status?: ProjectStatus,
+  userId?: number
 ) {
   return useQuery({
-    queryKey: ['projects', page, pageSize, search, status],
-    queryFn: () => projectsApi.getAll(page, pageSize, search, status),
+    queryKey: ['projects', page, pageSize, search, status, userId],
+    queryFn: () => {
+      if (userId) {
+        return projectsApi.getByUserId(userId, page, pageSize, search, status)
+      }
+      return projectsApi.getAll(page, pageSize, search, status)
+    },
   })
 }
 

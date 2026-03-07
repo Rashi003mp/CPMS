@@ -10,11 +10,19 @@ import Link from "next/link"
 
 export default function DashboardPage() {
   const { user } = useAuthStore()
-  const { data: projects, isLoading: projectsLoading } = useProjects(1, 100)
+  const isAdmin = user?.roleId === 0
+  const isClient = user?.roleId === 3
+  
+  // For clients, fetch only their projects; for others, fetch all projects
+  const { data: projects, isLoading: projectsLoading } = useProjects(
+    1, 
+    100, 
+    undefined, 
+    undefined, 
+    isClient ? user?.id : undefined
+  )
   const { data: users, isLoading: usersLoading } = useUsers()
   const { data: pendingRegistrations, isLoading: pendingLoading } = usePendingRegistrations()
-
-  const isAdmin = user?.roleId === 0
 
   // Calculate stats
   const totalProjects = projects?.totalCount || 0

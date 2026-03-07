@@ -65,5 +65,15 @@ namespace ConstructionPM.Infrastructure.Repositories.Quaries
                     pu.Id == userId &&
                     !pu.IsDeleted);
         }
+
+        public async Task<List<int>> GetProjectIdsByUserIdAsync(int userId)
+        {
+            return await _db.ProjectUsers
+                .AsNoTracking()
+                .Where(pu => pu.AssignedUserId == userId && !pu.IsDeleted)
+                .Select(pu => pu.ProjectId)
+                .Distinct()
+                .ToListAsync();
+        }
     }
 }

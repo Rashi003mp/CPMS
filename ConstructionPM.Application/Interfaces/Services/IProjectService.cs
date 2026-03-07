@@ -33,10 +33,12 @@ namespace ConstructionPM.Application.Interfaces.Services
 
         Task<ApiResponse<object>> DeleteProjectAsync(int projectId, string Reason);
 
-
-
-
-
+        Task<ApiResponse<PaginatedResult<ProjectDto>>> GetProjectsByUserIdAsync(
+            int userId,
+            int page,
+            int pageSize,
+            string? search,
+            ProjectStatus? status);
 
     }
 }
