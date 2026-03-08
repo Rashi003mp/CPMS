@@ -1,15 +1,14 @@
 export interface Comment {
   id: number
   taskId: number
-  commentText: string
-  createdBy: number
-  createdByName?: string
+  message: string
+  createdByUserId: number
+  createdByUserName: string
   createdAt: string
-  updatedAt?: string
 }
 
 export interface CreateCommentRequest {
-  commentText: string
+  message: string
 }
 
 export interface TaskCommentsResponse {

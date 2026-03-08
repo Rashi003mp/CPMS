@@ -17,6 +17,7 @@ import { useState } from 'react'
 import { EditTaskModal } from './edit-task-modal'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { tasksApi } from '@/lib/api/tasks'
+import { useRouter } from 'next/navigation'
 
 interface TaskCardProps {
   task: Task
@@ -27,6 +28,7 @@ interface TaskCardProps {
 export function TaskCard({ task, priorityColor, priorityLabel }: TaskCardProps) {
   const [isEditOpen, setIsEditOpen] = useState(false)
   const queryClient = useQueryClient()
+  const router = useRouter()
 
   const deleteMutation = useMutation({
     mutationFn: () => tasksApi.delete(task.id),
@@ -60,7 +62,10 @@ export function TaskCard({ task, priorityColor, priorityLabel }: TaskCardProps) 
 
   return (
     <>
-      <Card className="hover:shadow-md transition-shadow">
+      <Card 
+        className="hover:shadow-md transition-shadow cursor-pointer"
+        onClick={() => router.push(`/dashboard/tasks/${task.id}`)}
+      >
         <CardContent className="p-4">
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1">
@@ -78,17 +83,23 @@ export function TaskCard({ task, priorityColor, priorityLabel }: TaskCardProps) 
               </p>
             </div>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setIsEditOpen(true)}>
+              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                <DropdownMenuItem onClick={(e) => {
+                  e.stopPropagation()
+                  setIsEditOpen(true)
+                }}>
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  onClick={handleDelete}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDelete()
+                  }}
                   className="text-red-600"
                 >
                   Delete

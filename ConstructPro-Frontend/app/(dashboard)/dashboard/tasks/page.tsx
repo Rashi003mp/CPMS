@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
 import { projectsApi } from '@/lib/api/projects'
 import { tasksApi } from '@/lib/api/tasks'
 import { usersApi } from '@/lib/api/users'
@@ -25,13 +26,12 @@ import {
 } from "lucide-react"
 import { TASK_STATUS_LABELS, TASK_STATUS_COLORS } from '@/lib/constants'
 import { TaskStatus } from '@/types/task'
-import { EditTaskModal } from '@/components/tasks/edit-task-modal'
 import type { Task } from '@/types/task'
 
 export default function TasksPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const router = useRouter()
 
   // Fetch all users to map IDs to names
   const { data: allUsers } = useQuery({
@@ -205,7 +205,7 @@ export default function TasksPage() {
               {filteredTasks.map((task) => (
                 <div
                   key={task.id}
-                  onClick={() => setSelectedTask(task)}
+                  onClick={() => router.push(`/dashboard/tasks/${task.id}`)}
                   className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                 >
                   <div className="flex items-start justify-between gap-4">
@@ -250,15 +250,6 @@ export default function TasksPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* Edit Task Modal */}
-      {selectedTask && (
-        <EditTaskModal
-          isOpen={!!selectedTask}
-          onClose={() => setSelectedTask(null)}
-          task={selectedTask}
-        />
-      )}
     </div>
   )
 }

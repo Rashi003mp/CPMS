@@ -4,24 +4,24 @@ import type { ApiResponse } from '@/types/api'
 
 export const commentsApi = {
   // Get comments for a task
-  getByTask: async (taskId: number): Promise<Comment[]> => {
+  getByTask: async (taskId: number): Promise<TaskCommentsResponse> => {
     const response = await apiClient.get<ApiResponse<TaskCommentsResponse>>(
-      `/comments/tasks/${taskId}/comments`
+      `/tasks/${taskId}/comments`
     )
-    return response.data.data?.comments || []
+    return response.data.data!
   },
 
   // Create comment
   create: async (taskId: number, data: CreateCommentRequest): Promise<Comment> => {
     const response = await apiClient.post<ApiResponse<Comment>>(
-      `/comments/tasks/${taskId}/comments`,
+      `/tasks/${taskId}/comments`,
       data
     )
     return response.data.data!
   },
 
-  // Delete comment (if endpoint exists)
-  delete: async (taskId: number, commentId: number): Promise<void> => {
-    await apiClient.delete<ApiResponse>(`/comments/tasks/${taskId}/comments/${commentId}`)
+  // Delete comment
+  delete: async (commentId: number): Promise<void> => {
+    await apiClient.delete<ApiResponse>(`/comments/${commentId}`)
   },
 }
