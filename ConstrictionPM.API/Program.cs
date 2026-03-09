@@ -1,5 +1,6 @@
 using ConstructionPM.API.Extensions;
 using ConstructionPM.API.Middleware;
+using ConstructionPM.API.Hubs;
 using System.Text.Json.Serialization;
 using Microsoft.OpenApi.Models;
 
@@ -16,6 +17,9 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
+
+// Add SignalR
+builder.Services.AddSignalR();
 
 builder.Services.AddAppConfigurations(builder.Configuration);
 
@@ -80,4 +84,5 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<ActivityHub>("/hubs/activity");
 app.Run();

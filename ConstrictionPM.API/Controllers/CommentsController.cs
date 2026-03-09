@@ -4,6 +4,8 @@ using ConstructionPM.Application.Interfaces.Services;
 using ConstructionPM.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using ConstructionPM.API.Hubs;
 using System.Security.Claims;
 
 namespace ConstructionPM.API.Controllers
@@ -14,10 +16,17 @@ namespace ConstructionPM.API.Controllers
     public class CommentsController : ControllerBase
     {
         private readonly ICommentService _commentService;
+        private readonly IHubContext<ActivityHub> _hubContext;
+        private readonly ITaskService _taskService;
 
-        public CommentsController(ICommentService commentService)
+        public CommentsController(
+            ICommentService commentService,
+            IHubContext<ActivityHub> hubContext,
+            ITaskService taskService)
         {
             _commentService = commentService;
+            _hubContext = hubContext;
+            _taskService = taskService;
         }
         // CREATE COMMENT
         
@@ -42,6 +51,24 @@ namespace ConstructionPM.API.Controllers
             };
 
             var response = await _commentService.CreateAsync(internalDto, traceId);
+            
+            // Broadcast via SignalR if successful
+            if (response.Success && response.Data != null)
+            {
+                var taskResponse = await _taskService.GetTaskByIdAsync(taskId);
+                if (taskResponse != null && taskResponse.Data != null)
+                {
+                    await _hubContext.Clients.Group($"project_{taskResponse.Data.ProjectId}")
+                        .SendAsync("ReceiveComment", new
+                        {
+                            comment = response.Data,
+                            taskId = taskId,
+                            projectId = taskResponse.Data.ProjectId,
+                            taskTitle = taskResponse.Data.Title
+                        });
+                }
+            }
+            
             return StatusCode(response.StatusCode, response);
         }
 

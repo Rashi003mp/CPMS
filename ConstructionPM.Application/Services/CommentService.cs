@@ -69,7 +69,10 @@ namespace ConstructionPM.Application.Services
                     {
                         Id = comment.Id,
                         TaskId = comment.TaskId,
-                        Message = comment.CommentText
+                        Message = comment.CommentText,
+                        CreatedByUserId = (int)comment.CreatedByUserId,
+                        CreatedByUserName = comment.CreatedByUserName ?? string.Empty,
+                        CreatedAt = comment.CreatedAt
                     },
                     "Comment added successfully", 201, traceId);  // 201 Created
             }
