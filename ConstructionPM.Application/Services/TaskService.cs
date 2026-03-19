@@ -1,4 +1,4 @@
-﻿using ConstructionPM.Application.DTOs.Response;
+using ConstructionPM.Application.DTOs.Response;
 using ConstructionPM.Application.DTOs.TaskManager;
 using ConstructionPM.Application.Interfaces.Repositories.Commands;
 using ConstructionPM.Application.Interfaces.Repositories.Queries;
@@ -324,6 +324,11 @@ namespace ConstructionPM.Application.Services
                 // Update Status if provided
                 if (dto.Status.HasValue)
                 {
+                    if (task.Status != DomainTaskStatus.Todo && dto.Status.Value == DomainTaskStatus.Todo)
+                    {
+                        await _unitOfWork.RollbackAsync();
+                        return ApiResponse.ErrorResponse("Task cannot be moved back to Todo status once it has started.");
+                    }
                     task.Status = dto.Status.Value;
                     changes.Add("Status");
                 }

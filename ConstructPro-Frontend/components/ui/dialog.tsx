@@ -26,18 +26,18 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
   )
 }
 
-export function DialogContent({ children }: { children: React.ReactNode }) {
-  return <div className="p-6">{children}</div>
+export function DialogContent({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <div className={`p-6 ${className}`}>{children}</div>
 }
 
-export function DialogHeader({ children }: { children: React.ReactNode }) {
-  return <div className="mb-4">{children}</div>
+export function DialogHeader({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <div className={`mb-4 ${className}`}>{children}</div>
 }
 
-export function DialogTitle({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-2xl font-bold">{children}</h2>
+export function DialogTitle({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <h2 className={`text-2xl font-bold ${className}`}>{children}</h2>
 }
 
-export function DialogFooter({ children }: { children: React.ReactNode }) {
-  return <div className="flex justify-end gap-2 mt-6">{children}</div>
+export function DialogFooter({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <div className={`flex justify-end gap-2 mt-6 ${className}`}>{children}</div>
 }

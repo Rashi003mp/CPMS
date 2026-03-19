@@ -1,9 +1,11 @@
-﻿using ConstructionPM.Application.DTOs.Response;
+using ConstructionPM.Application.DTOs.Response;
 using ConstructionPM.Application.DTOs.TaskManager;
 using ConstructionPM.Application.Interfaces.Services;
+using ConstructionPM.API.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 
 namespace ConstructionPM.API.Controllers
@@ -14,10 +16,12 @@ namespace ConstructionPM.API.Controllers
     public class TaskController : ControllerBase
     {
         private readonly ITaskService _taskService;
+        private readonly IHubContext<ActivityHub> _hubContext;
 
-        public TaskController(ITaskService taskService)
+        public TaskController(ITaskService taskService, IHubContext<ActivityHub> hubContext)
         {
             _taskService = taskService;
+            _hubContext = hubContext;
         }
 
         [HttpPost]
@@ -51,6 +55,14 @@ namespace ConstructionPM.API.Controllers
 
             if (!result.Success)
                 return BadRequest(result);
+
+            // Fetch the updated task to get its ProjectId and broadcast
+            var updatedTask = await _taskService.GetTaskByIdAsync(dto.TaskId);
+            if (updatedTask != null && updatedTask.Data != null)
+            {
+                await _hubContext.Clients.Group($"project_{updatedTask.Data.ProjectId}")
+                    .SendAsync("TaskUpdated", updatedTask.Data);
+            }
 
             return Ok(result);
         }

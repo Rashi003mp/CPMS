@@ -2,7 +2,7 @@
 
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { useAuthStore } from "@/store/authStore"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
@@ -35,6 +35,7 @@ export default function DashboardLayout({
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, clearAuth } = useAuthStore()
   const router = useRouter()
+  const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
@@ -67,62 +68,73 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const allNavigation = [...baseNavigation, ...extendedNavigation, ...adminNavigation]
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50/50">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-gray-600 bg-opacity-75 z-20 lg:hidden"
+          className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-20 lg:hidden transition-opacity"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 bg-white border-r transform transition-all duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-30 bg-white border-r border-gray-100 shadow-sm transform transition-all duration-300 ease-in-out lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         } ${sidebarCollapsed ? "lg:w-20" : "lg:w-64"} w-64`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between h-16 px-6">
+          <div className="flex items-center justify-between h-16 px-6 border-b border-gray-50">
             <div className={`flex items-center space-x-2 transition-opacity duration-300 ${sidebarCollapsed ? "lg:opacity-0 lg:w-0" : "opacity-100"}`}>
-              <Building2 className="h-8 w-8 text-primary flex-shrink-0" />
-              <span className="text-xl font-bold whitespace-nowrap">ConstructPro</span>
+              <div className="p-1.5 bg-blue-50 rounded-lg">
+                <Building2 className="h-6 w-6 text-primary flex-shrink-0" />
+              </div>
+              <span className="text-xl font-bold whitespace-nowrap text-gray-900 tracking-tight">ConstructPro</span>
             </div>
             {sidebarCollapsed && (
-              <div className="hidden lg:block">
-                <Building2 className="h-8 w-8 text-primary" />
+              <div className="hidden lg:flex w-full justify-center">
+                <div className="p-1.5 bg-blue-50 rounded-lg">
+                  <Building2 className="h-6 w-6 text-primary" />
+                </div>
               </div>
             )}
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden"
+              className="lg:hidden text-gray-500 hover:text-gray-700 hover:bg-gray-100 p-1.5 rounded-lg transition-colors"
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-            {allNavigation.map((item) => (
+          <nav className="flex-1 px-4 py-8 space-y-1.5 overflow-y-auto">
+            {allNavigation.map((item) => {
+              const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+              
+              return (
               <Link
                 key={item.name}
                 href={item.href}
-                className="flex items-center space-x-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all group relative ${
+                   isActive 
+                     ? "bg-blue-50 text-blue-700 font-semibold shadow-sm"
+                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium"
+                }`}
                 onClick={() => setSidebarOpen(false)}
                 title={sidebarCollapsed ? item.name : undefined}
               >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
+                <item.icon className={`h-5 w-5 flex-shrink-0 transition-colors ${isActive ? "text-blue-600" : "text-gray-400 group-hover:text-gray-600"}`} />
                 <span className={`transition-all duration-300 ${sidebarCollapsed ? "lg:opacity-0 lg:w-0 lg:hidden" : "opacity-100"}`}>
                   {item.name}
                 </span>
                 {sidebarCollapsed && (
-                  <span className="hidden lg:block absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                  <span className="hidden lg:block absolute left-full ml-4 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-md z-50">
                     {item.name}
                   </span>
                 )}
               </Link>
-            ))}
+            )})}
             
             {/* Collapse/Expand Button (Desktop only) - Moved here */}
             <div className="hidden lg:flex justify-center pt-2">

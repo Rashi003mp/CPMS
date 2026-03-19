@@ -2,7 +2,7 @@ import * as signalR from '@microsoft/signalr'
 
 class ActivityHubConnection {
   private connection: signalR.HubConnection | null = null
-  private projectId: string | null = null
+  private projectIds: Set<string> = new Set()
 
   async connect(token: string) {
     if (this.connection?.state === signalR.HubConnectionState.Connected) {
@@ -33,28 +33,34 @@ class ActivityHubConnection {
       throw new Error('SignalR connection not established')
     }
 
-    if (this.projectId === projectId) {
+    if (this.projectIds.has(projectId)) {
       return // Already in this group
-    }
-
-    // Leave previous group if any
-    if (this.projectId) {
-      await this.connection.invoke('LeaveProjectGroup', this.projectId)
     }
 
     // Join new group
     await this.connection.invoke('JoinProjectGroup', projectId)
-    this.projectId = projectId
+    this.projectIds.add(projectId)
     console.log(`✅ Joined project group: ${projectId}`)
   }
 
-  async leaveProjectGroup() {
-    if (!this.connection || !this.projectId) return
+  async leaveProjectGroup(projectId?: string) {
+    if (!this.connection) return
 
     try {
-      await this.connection.invoke('LeaveProjectGroup', this.projectId)
-      console.log(`✅ Left project group: ${this.projectId}`)
-      this.projectId = null
+      if (projectId) {
+        if (this.projectIds.has(projectId)) {
+          await this.connection.invoke('LeaveProjectGroup', projectId)
+          this.projectIds.delete(projectId)
+          console.log(`✅ Left project group: ${projectId}`)
+        }
+      } else {
+        // Leave all groups
+        for (const pid of this.projectIds) {
+          await this.connection.invoke('LeaveProjectGroup', pid)
+          console.log(`✅ Left project group: ${pid}`)
+        }
+        this.projectIds.clear()
+      }
     } catch (err) {
       console.error('❌ Error leaving project group:', err)
     }
@@ -62,14 +68,17 @@ class ActivityHubConnection {
 
   onReceiveComment(callback: (data: any) => void) {
     if (!this.connection) return
-
     this.connection.on('ReceiveComment', callback)
   }
 
   onReceiveActivity(callback: (data: any) => void) {
     if (!this.connection) return
-
     this.connection.on('ReceiveActivity', callback)
+  }
+
+  onReceiveTaskUpdated(callback: (data: any) => void) {
+    if (!this.connection) return
+    this.connection.on('TaskUpdated', callback)
   }
 
   offReceiveComment() {
@@ -82,6 +91,11 @@ class ActivityHubConnection {
     this.connection.off('ReceiveActivity')
   }
 
+  offReceiveTaskUpdated() {
+    if (!this.connection) return
+    this.connection.off('TaskUpdated')
+  }
+
   async disconnect() {
     if (!this.connection) return
 
@@ -90,7 +104,7 @@ class ActivityHubConnection {
       await this.connection.stop()
       console.log('✅ SignalR Disconnected')
       this.connection = null
-      this.projectId = null
+      this.projectIds.clear()
     } catch (err) {
       console.error('❌ Error disconnecting SignalR:', err)
     }

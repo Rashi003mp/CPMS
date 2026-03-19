@@ -9,7 +9,7 @@ import { useProjects } from "@/lib/hooks/useProjects"
 import { useAuthStore } from "@/store/authStore"
 import { CreateProjectModal } from "@/components/projects/create-project-modal"
 import { EditProjectModal } from "@/components/projects/edit-project-modal"
-import { Plus, Search, Filter, Building2, MoreVertical, Edit, Trash2 } from "lucide-react"
+import { Plus, Search, Filter, Building2, MoreVertical, Edit, Trash2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import {
   DropdownMenu,
@@ -110,11 +110,12 @@ export default function ProjectsPage() {
       </div>
 
       {/* Search and Filters */}
-      <Card>
+      <Card className="overflow-hidden border-0 shadow-md">
+        <div className="h-1 bg-gradient-to-r from-blue-500 via-sky-400 to-indigo-500" />
         <CardContent className="pt-6">
           <div className="flex gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <Input
                 placeholder="Search projects..."
                 value={search}
@@ -122,10 +123,10 @@ export default function ProjectsPage() {
                   setSearch(e.target.value)
                   setPage(1)
                 }}
-                className="pl-10"
+                className="pl-10 border-gray-200 bg-gray-50 focus:bg-white transition-colors h-11 rounded-xl"
               />
             </div>
-            <Button variant="outline">
+            <Button variant="outline" className="h-11 px-6 rounded-xl border-gray-200 hover:bg-gray-50">
               <Filter className="mr-2 h-4 w-4" />
               Filter
             </Button>
@@ -135,15 +136,21 @@ export default function ProjectsPage() {
 
       {/* Projects List */}
       {isLoading ? (
-        <Card>
-          <CardContent className="py-12">
-            <div className="text-center text-gray-500">Loading projects...</div>
+        <Card className="border-0 shadow-md">
+          <CardContent className="py-20 flex flex-col items-center justify-center">
+            <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center mb-4">
+              <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+            <div className="text-gray-500 font-medium">Loading projects...</div>
           </CardContent>
         </Card>
       ) : error ? (
-        <Card>
-          <CardContent className="py-12">
-            <div className="text-center text-red-500">
+        <Card className="border-0 shadow-md">
+          <CardContent className="py-20 flex flex-col items-center justify-center">
+            <div className="h-12 w-12 rounded-full bg-red-50 flex items-center justify-center mb-4">
+              <AlertCircle className="h-6 w-6 text-red-500" />
+            </div>
+            <div className="text-red-600 font-medium">
               Error loading projects. Please try again.
             </div>
           </CardContent>
@@ -154,61 +161,70 @@ export default function ProjectsPage() {
             {data.items.map((project) => (
               <div key={project.id} className="relative group">
                 <Link href={`/projects/${project.id}`}>
-                  <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full overflow-hidden">
+                  <Card className="h-full overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1">
                     {/* Project Image */}
-                    <div className="relative h-48 bg-gray-200">
+                    <div className="relative h-48 bg-gray-100 overflow-hidden">
                       {project.imageUrl && !imageErrors[project.id] ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img
                           src={project.imageUrl}
                           alt={project.name}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                           onError={() =>
                             setImageErrors((prev) => ({ ...prev, [project.id]: true }))
                           }
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Building2 className="h-16 w-16 text-gray-400" />
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50/50">
+                          <div className="p-4 rounded-full bg-white shadow-sm mb-3">
+                            <Building2 className="h-8 w-8 text-blue-400" />
+                          </div>
+                          <span className="text-sm font-medium text-blue-900/40">No preview</span>
                         </div>
                       )}
-                    </div>
-
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <CardTitle className="text-lg">{project.name}</CardTitle>
-                        <Badge className={getStatusColor(project.status)}>
+                      
+                      {/* Status Badge Overlaid */}
+                      <div className="absolute top-4 left-4">
+                        <Badge className={`px-2.5 py-1 font-medium shadow-sm backdrop-blur-md border-0 ${
+                            project.status === "Active" ? "bg-green-500/90 text-white" :
+                            project.status === "Planned" ? "bg-blue-500/90 text-white" :
+                            project.status === "Completed" ? "bg-gray-600/90 text-white" :
+                            "bg-yellow-500/90 text-white"
+                          }`}>
+                          {project.status === 'Active' && <span className="w-1.5 h-1.5 rounded-full bg-white mr-1.5 animate-pulse inline-block" />}
                           {project.status}
                         </Badge>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                        {project.description || "No description available"}
+                    </div>
+
+                    <CardContent className="p-5">
+                      <h3 className="text-lg font-bold text-gray-900 group-hover:text-primary transition-colors line-clamp-1 mb-2">
+                        {project.name}
+                      </h3>
+                      <p className="text-sm text-gray-500 mb-5 line-clamp-2 min-h-[2.5rem]">
+                        {project.description || "No description provided"}
                       </p>
-                      <div className="space-y-2 text-xs text-gray-500">
+                      
+                      {/* Details Strip */}
+                      <div className="space-y-3 pt-4 border-t border-gray-100">
                         {project.projectManagerName && (
-                          <div>
-                            <span className="font-medium">PM:</span>{" "}
-                            {project.projectManagerName}
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                              {project.projectManagerName.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold truncate hover:text-gray-500">Project Manager</p>
+                              <p className="text-sm font-medium text-gray-900 truncate">{project.projectManagerName}</p>
+                            </div>
                           </div>
                         )}
-                        {project.siteEngineerName && project.siteEngineerName.length > 0 && (
-                          <div>
-                            <span className="font-medium">Engineers:</span>{" "}
-                            {project.siteEngineerName.join(", ")}
-                          </div>
-                        )}
-                        <div>
-                          <span className="font-medium">Created:</span>{" "}
-                          {new Date(project.createdAt).toLocaleDateString()}
+                        
+                        <div className="flex items-center justify-between text-xs text-gray-400 pt-1">
+                          <span>Created {new Date(project.createdAt).toLocaleDateString()}</span>
+                          {project.createdByUserName && (
+                             <span className="truncate max-w-[120px]">By {project.createdByUserName.split(' ')[0]}</span>
+                          )}
                         </div>
-                        {project.createdByUserName && (
-                          <div>
-                            <span className="font-medium">By:</span>{" "}
-                            {project.createdByUserName}
-                          </div>
-                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -216,35 +232,35 @@ export default function ProjectsPage() {
 
                 {/* Dropdown Menu - Only for non-clients */}
                 {!isClient && (
-                  <div className="absolute top-2 right-2 z-10">
+                  <div className="absolute top-4 right-4 z-10">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 w-8 p-0 bg-white/90 hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="h-8 w-8 p-0 bg-white/90 hover:bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all hover:scale-105"
                           onClick={(e) => {
                             e.preventDefault()
                             e.stopPropagation()
                           }}
                         >
-                          <MoreVertical className="w-4 h-4" />
+                          <MoreVertical className="w-4 h-4 text-gray-600" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-white">
+                      <DropdownMenuContent align="end" className="bg-white rounded-xl shadow-lg border-gray-100 p-1">
                         <DropdownMenuItem
                           onClick={(e) => handleEdit(project, e)}
-                          className="cursor-pointer hover:bg-gray-100"
+                          className="cursor-pointer hover:bg-gray-50 rounded-lg group/item"
                         >
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit
+                          <Edit className="w-4 h-4 mr-2 text-gray-400 group-hover/item:text-blue-500 transition-colors" />
+                          <span className="font-medium text-gray-700 group-hover/item:text-blue-600 transition-colors">Edit Project</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={(e) => handleDelete(project, e)}
-                          className="text-red-600 cursor-pointer hover:bg-red-50"
+                          className="cursor-pointer hover:bg-red-50 rounded-lg group/item mt-1"
                         >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
+                          <Trash2 className="w-4 h-4 mr-2 text-red-400 group-hover/item:text-red-500 transition-colors" />
+                          <span className="font-medium text-red-600 transition-colors">Delete</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
